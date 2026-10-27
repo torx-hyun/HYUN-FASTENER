@@ -108,44 +108,21 @@
       <div>
         <div class="flex justify-between items-center mb-1.5">
           <span class="text-[11px] font-semibold text-slate-500">2. 헤드 형태</span>
-          <span class="text-[10px] text-amber-600 font-medium" id="headNotice">* 재질별 가능 규격만 활성화</span>
+          <span class="text-[10px] text-amber-600 font-medium" id="headNotice">* 인치 선택 시 인치 규격 자동전환</span>
         </div>
-        <div class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto p-1 bg-slate-50 rounded-lg border border-slate-200" id="headContainer"></div>
+        <div class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-1 bg-slate-50 rounded-lg border border-slate-200" id="headContainer"></div>
       </div>
 
-      <!-- [C] 직경 & 길이 -->
+      <!-- [C] 직경 & 길이 (동적 생성) -->
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <span class="text-[11px] font-semibold text-slate-500 block mb-1">3. 호칭경 (직경)</span>
+          <span class="text-[11px] font-semibold text-slate-500 block mb-1" id="diaLabel">3. 호칭경 (직경)</span>
           <select id="diaSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onSpecChange()">
-            <option value="1.6">M1.6</option>
-            <option value="2">M2</option>
-            <option value="2.5">M2.5</option>
-            <option value="2.6">M2.6</option>
-            <option value="3" selected>M3</option>
-            <option value="4">M4</option>
-            <option value="5">M5</option>
-            <option value="6">M6</option>
-            <option value="8">M8</option>
-            <option value="10">M10</option>
           </select>
         </div>
         <div>
-          <span class="text-[11px] font-semibold text-slate-500 block mb-1">4. 길이 (L)</span>
+          <span class="text-[11px] font-semibold text-slate-500 block mb-1" id="lenLabel">4. 길이 (L)</span>
           <select id="lenSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onSpecChange()">
-            <option value="2.5">2.5L</option>
-            <option value="3">3L</option>
-            <option value="4">4L</option>
-            <option value="5">5L</option>
-            <option value="6">6L</option>
-            <option value="8">8L</option>
-            <option value="10" selected>10L</option>
-            <option value="12">12L</option>
-            <option value="14">14L</option>
-            <option value="15">15L</option>
-            <option value="20">20L</option>
-            <option value="25">25L</option>
-            <option value="30">30L</option>
           </select>
         </div>
       </div>
@@ -180,13 +157,13 @@
         </div>
       </div>
 
-      <!-- 선택된 품목 요약 & 재고 상태 & 담기 -->
+      <!-- 선택 품목 요약 & 재고 상태 & 담기 -->
       <div class="pt-1 space-y-2">
         <div class="p-2.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-700 flex justify-between items-center">
           <div class="truncate mr-2">
-            선택: <span class="font-bold text-blue-900" id="previewSpecText">스텐 유두렌지 (3*10)</span>
+            선택: <span class="font-bold text-blue-900" id="previewSpecText">-</span>
           </div>
-          <div id="stockBadge" class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+          <div id="stockBadge" class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">
             재고 확인중..
           </div>
         </div>
@@ -330,21 +307,28 @@
     const allHeads = [
       "유두렌지", "유두렌지SP/W", "유두렌지S/W", "유두렌지SP/W(大)", "사라렌지", "마루렌지", "낮은머리렌지",
       "유두별렌지", "사라별", "사라핀별", "마루별", "마루핀별",
-      "유두렌지-(INCH)", "사라렌지-(INCH)", "마루렌지-(INCH)", "P+-(INCH)", "F+-(INCH)", "T+-(INCH)",
+      "유두렌지(INCH)", "사라렌지(INCH)", "마루렌지(INCH)", "P+-(INCH)", "F+-(INCH)", "T+-(INCH)",
       "P+", "F+", "T+", "B+", "P+SP/W", "P+S/W", "HEX+SP/W", "유두렌지(좌산)"
     ];
+
+    const metricDias = ["1.6", "2", "2.5", "2.6", "3", "4", "5", "6", "8", "10"];
+    const metricLens = ["2.5", "3", "4", "5", "6", "8", "10", "12", "14", "15", "20", "25", "30"];
+
+    const inchDiasAll = ["#2-56", "#4-40", "#5-40", "#6-32", "#8-32", "#10-24", "#10-32", "1/4-20", "5/16-18"];
+    const inchDiasFrom4 = ["#4-40", "#5-40", "#6-32", "#8-32", "#10-24", "#10-32", "1/4-20", "5/16-18"];
+    const inchLens = ["3/16", "1/4", "5/16", "3/8", "7/16", "1/2", "5/8", "3/4", "7/8", "1\"", "1\"1/4", "1\"1/2"];
 
     let currentCompany = null;
     let selectedMat = "스텐";
     let selectedHead = "유두렌지";
     let selectedBagUnit = 1000;
-    let currentStockData = { available: true, stock: 999999, isPackingWaiting: false };
+    let currentStockData = { available: false, stock: 0 };
     let cart = [];
 
     window.onload = function() {
-      renderHeadOptions();
       loadSavedCompany();
-      onSpecChange();
+      renderHeadOptions();
+      updateSpecDropdowns();
     };
 
     function loadSavedCompany() {
@@ -514,16 +498,30 @@
       });
       btn.className = "mat-btn py-2 px-1 border border-blue-600 bg-blue-50 font-bold text-blue-700 rounded-lg text-center transition";
       renderHeadOptions();
-      onSpecChange();
+      updateSpecDropdowns();
     }
 
+    // 재질별 허용 헤드 판단 (인치 규칙 적용)
     function isHeadAllowed(mat, head) {
-      const isPlusType = head.includes("+");
-      const isSpecialPlus = (head === "P+SP/W" || head === "P+S/W" || head === "HEX+SP/W");
-      if (mat === "SCM-무전해") return !isPlusType;
-      if (mat === "철-NI") return !isPlusType || isSpecialPlus;
+      const isInch = head.includes("INCH");
+      const isPlus = head.includes("+");
+
+      if (isInch) {
+        if (mat === "스텐") {
+          return ["유두렌지(INCH)", "사라렌지(INCH)", "P+-(INCH)", "F+-(INCH)", "T+-(INCH)"].includes(head);
+        } else if (mat.startsWith("SCM")) {
+          return ["유두렌지(INCH)", "사라렌지(INCH)", "마루렌지(INCH)"].includes(head);
+        } else {
+          return false;
+        }
+      }
+
+      // 일반 규격
+      if (mat === "SCM-무전해" || mat === "SCM-착색") return !isPlus;
+      if (mat === "철-NI") return !isPlus || (head === "P+SP/W" || head === "P+S/W" || head === "HEX+SP/W");
+      if (mat === "철-천연색") return isPlus;
       if (mat === "스텐" || mat === "스텐(316L)") return true;
-      return !isPlusType;
+      return true;
     }
 
     function renderHeadOptions() {
@@ -545,10 +543,10 @@
           btn.onclick = () => {
             selectedHead = head;
             renderHeadOptions();
-            onSpecChange();
+            updateSpecDropdowns();
           };
         } else {
-          btn.className = "px-2.5 py-1.5 rounded-md text-xs font-normal bg-slate-200/60 text-slate-600 line-through cursor-not-allowed";
+          btn.className = "px-2.5 py-1.5 rounded-md text-xs font-normal bg-slate-200/60 text-slate-400 line-through cursor-not-allowed";
           btn.disabled = true;
         }
 
@@ -560,6 +558,56 @@
         selectedHead = firstValidHead || "유두렌지";
         renderHeadOptions();
       }
+    }
+
+    // 헤드 형태에 따라 직경과 길이 선택창 업데이트
+    function updateSpecDropdowns() {
+      const diaSelect = document.getElementById('diaSelect');
+      const lenSelect = document.getElementById('lenSelect');
+      const isInch = selectedHead.includes("INCH");
+
+      diaSelect.innerHTML = "";
+      lenSelect.innerHTML = "";
+
+      if (isInch) {
+        // 인치 규격 분기: 스텐 사라만 #2부터, 나머지는 #4부터
+        const dias = (selectedMat === "스텐" && selectedHead === "사라렌지(INCH)") 
+          ? inchDiasAll 
+          : inchDiasFrom4;
+
+        dias.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d;
+          opt.innerText = d;
+          diaSelect.appendChild(opt);
+        });
+
+        inchLens.forEach(l => {
+          const opt = document.createElement('option');
+          opt.value = l;
+          opt.innerText = l;
+          lenSelect.appendChild(opt);
+        });
+      } else {
+        // 미터법 일반 규격
+        metricDias.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d;
+          opt.innerText = "M" + d;
+          if (d === "3") opt.selected = true;
+          diaSelect.appendChild(opt);
+        });
+
+        metricLens.forEach(l => {
+          const opt = document.createElement('option');
+          opt.value = l;
+          opt.innerText = l + "L";
+          if (l === "10") opt.selected = true;
+          lenSelect.appendChild(opt);
+        });
+      }
+
+      onSpecChange();
     }
 
     function selectBagUnit(unit, btn) {
@@ -586,53 +634,61 @@
       document.getElementById('calcQtyResult').innerText = total.toLocaleString() + "개";
     }
 
-// 규격 변경 시 실시간 재고 확인
-let stockTimer = null;
-function onSpecChange() {
-  const dia = document.getElementById('diaSelect').value;
-  const len = document.getElementById('lenSelect').value;
-  const fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
-  document.getElementById('previewSpecText').innerText = fullName;
+    // 규격 변경 시 시트 검색 및 실시간 재고 확인
+    let stockTimer = null;
+    function onSpecChange() {
+      const dia = document.getElementById('diaSelect').value;
+      const len = document.getElementById('lenSelect').value;
+      const isInch = selectedHead.includes("INCH");
 
-  const badge = document.getElementById('stockBadge');
-  const addBtn = document.getElementById('addCartBtn');
-
-  badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700";
-  badge.innerText = "재고 확인중..";
-
-  if (stockTimer) clearTimeout(stockTimer);
-  stockTimer = setTimeout(async () => {
-    try {
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${encodeURIComponent(fullName)}`);
-      const data = await res.json();
-      currentStockData = data;
-
-      if (!data.available) {
-        badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
-        badge.innerText = data.result === "not_found" ? "취급/재고 없음" : "품절 (재고소진)";
-        addBtn.disabled = true;
-        addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
-        addBtn.innerHTML = `<i class="fa-solid fa-ban"></i> 발주 불가 (재고/규격 없음)`;
+      let fullName = "";
+      if (isInch) {
+        fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
       } else {
-        addBtn.disabled = false;
-        addBtn.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition";
-        addBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기`;
-
-        if (data.isPackingWaiting) {
-          badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
-          badge.innerText = "포장대기중 (주문가능)";
-        } else {
-          badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
-          badge.innerText = `재고 여유 (${data.stock.toLocaleString()}개)`;
-        }
+        fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
       }
-    } catch (e) {
-      badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
-      badge.innerText = "조회 실패";
-      currentStockData = { available: false, stock: 0 };
+      document.getElementById('previewSpecText').innerText = fullName;
+
+      const badge = document.getElementById('stockBadge');
+      const addBtn = document.getElementById('addCartBtn');
+
+      badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700";
+      badge.innerText = "재고 확인중..";
+
+      if (stockTimer) clearTimeout(stockTimer);
+      stockTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${encodeURIComponent(fullName)}`);
+          const data = await res.json();
+          currentStockData = data;
+
+          if (!data.available) {
+            badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
+            badge.innerText = "품절 (재고 소진)";
+            addBtn.disabled = true;
+            addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
+            addBtn.innerHTML = `<i class="fa-solid fa-ban"></i> 품절된 규격입니다`;
+          } else {
+            addBtn.disabled = false;
+            addBtn.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition";
+            addBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기`;
+
+            if (data.isPackingWaiting) {
+              badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
+              badge.innerText = "포장대기 (주문가능)";
+            } else {
+              badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+              badge.innerText = "재고 있음";
+            }
+          }
+        } catch (e) {
+          badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
+          badge.innerText = "확인 불가";
+          currentStockData = { available: false, stock: 0 };
+        }
+      }, 300);
     }
-  }, 300);
-}
+
     function addToCart() {
       if (!currentCompany) {
         alert("상단에서 등록된 사업자번호 뒷자리를 먼저 조회(인증)해 주세요.");
@@ -645,13 +701,11 @@ function onSpecChange() {
       const totalQty = selectedBagUnit * bags;
       const fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
 
-      // 재고 소진 검증
       if (!currentStockData.available) {
         alert("해당 품목은 현재 재고가 없어 발주가 불가합니다. (현화스너 1551-5456 문의)");
         return;
       }
 
-      // 수량 초과 검증 (포장대기가 아니고 실제 재고 수량이 명시된 경우)
       if (!currentStockData.isPackingWaiting && currentStockData.stock < 900000 && totalQty > currentStockData.stock) {
         alert(`[재고량 부족]\n현재 주문 가능 수량은 ${currentStockData.stock.toLocaleString()}개입니다.\n선택하신 수량(${totalQty.toLocaleString()}개)보다 부족합니다.\n\n대량 주문 및 납기 확인은 현화스너(1551-5456)로 문의해 주세요.`);
         return;
