@@ -635,7 +635,6 @@
     }
 
     // 규격 변경 시 시트 검색 및 실시간 재고 확인
-  // 규격 변경 시 시트 검색 및 실시간 재고 확인
     let stockTimer = null;
     function onSpecChange() {
       const dia = document.getElementById('diaSelect').value;
@@ -659,7 +658,8 @@
       if (stockTimer) clearTimeout(stockTimer);
       stockTimer = setTimeout(async () => {
         try {
-          const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${encodeURIComponent(fullName)}`);
+          const safeKey = encodeURIComponent(fullName);
+          const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${safeKey}`);
           const data = await res.json();
           currentStockData = data;
 
