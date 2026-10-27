@@ -12,8 +12,6 @@
       font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl flex flex-col pb-28 text-slate-800">
@@ -26,7 +24,7 @@
           <span class="bg-blue-600 text-xs px-2 py-0.5 rounded font-bold">B2B</span>
           <h1 class="text-lg font-bold tracking-tight">현화스너 (Hyun Fastener)</h1>
         </div>
-        <p class="text-xs text-blue-200 mt-0.5">간편 모바일 수발주 시스템 (테스트 모드)</p>
+        <p class="text-xs text-blue-200 mt-0.5">간편 모바일 수발주 시스템</p>
       </div>
       <a href="tel:1551-5456" class="text-xs bg-blue-800/80 hover:bg-blue-700 px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-blue-700">
         <i class="fa-solid fa-phone text-xs"></i> 1551-5456
@@ -40,37 +38,50 @@
     <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200">
       <div class="flex items-center justify-between mb-2">
         <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-          <i class="fa-solid fa-building text-blue-600"></i> 거래처 식별 (사업자 뒷 5자리)
+          <i class="fa-solid fa-shield-halved text-blue-600"></i> 거래처 본인인증 (사업자 뒷 5자리)
         </label>
-        <span class="text-[11px] text-slate-600 font-medium bg-slate-100 px-1.5 py-0.5 rounded">히트판 연동형</span>
+        <span id="authBadge" class="text-[11px] text-amber-700 font-bold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">인증 필요</span>
       </div>
 
       <div class="relative flex gap-1.5">
-        <input type="text" id="bizInput" placeholder="사업자번호 뒷자리 입력 (예: 12345, 56789)"
+        <input type="text" id="bizInput" placeholder="사업자번호 뒷 5자리 (예: 48452)" maxlength="5"
           class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono tracking-wider">
-        <button onclick="searchCompany()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shrink-0 transition">
-          조회
+        <button id="searchBtn" onclick="searchCompany()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1">
+          <span id="searchBtnText">조회</span>
         </button>
       </div>
 
-      <!-- 거래처 조회 결과 -->
-      <div id="companyInfoCard" class="mt-2.5 p-2.5 bg-blue-50/70 border border-blue-200 rounded-lg text-xs space-y-1">
-        <div class="flex justify-between items-center">
-          <span class="font-bold text-blue-950 text-sm" id="cName">명성볼트(화성)</span>
-          <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-semibold" id="cCode">식별코드: MV</span>
+      <!-- 거래처 조회 상태 창 -->
+      <div id="companyInfoCard" class="mt-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
+        <div class="text-slate-500 text-center py-1 font-medium" id="authHelpText">
+          사업자등록번호 뒷자리를 조회하셔야 발주서 작성이 가능합니다.
         </div>
-        <div class="text-slate-600 flex gap-2">
-          <span>대표: <b class="text-slate-800" id="cCeo">최재용</b></span>
-          <span>연락처: <b class="text-slate-800" id="cPhone">010-8888-9999</b></span>
+        <div id="companyDetails" class="hidden space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-blue-950 text-sm" id="cName">-</span>
+            <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-semibold" id="cCode">코드: -</span>
+          </div>
+          <div class="text-slate-600 flex gap-2">
+            <span>대표: <b class="text-slate-800" id="cCeo">-</b></span>
+            <span>연락처: <b class="text-slate-800" id="cPhone">-</b></span>
+          </div>
+          <div class="text-slate-600 truncate">
+            <span>배송지: </span><span class="text-slate-800" id="cAddr">-</span>
+          </div>
         </div>
-        <div class="text-slate-600 truncate">
-          <span>배송지: </span><span class="text-slate-800" id="cAddr">경기도 화성시 향남읍 발안로 123</span>
-        </div>
+      </div>
+
+      <!-- 신규 거래처 등록 신청 유도 버튼 -->
+      <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-center text-[11px]">
+        <span class="text-slate-500">처음 발주하시는 거래처이신가요?</span>
+        <button type="button" onclick="openRegisterModal()" class="text-blue-600 font-bold hover:underline flex items-center gap-1">
+          <i class="fa-solid fa-user-plus"></i> 신규 거래처 신청
+        </button>
       </div>
     </div>
 
     <!-- 2. 품목 선택기 -->
-    <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 space-y-3">
+    <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 space-y-3 relative">
       <h2 class="text-xs font-bold text-slate-700 flex items-center gap-1.5 border-b pb-2">
         <i class="fa-solid fa-layer-group text-blue-600"></i> 규격 클릭식 선택
       </h2>
@@ -89,15 +100,13 @@
         </div>
       </div>
 
-      <!-- [B] 헤드 형태 (필터링 적용) -->
+      <!-- [B] 헤드 형태 -->
       <div>
         <div class="flex justify-between items-center mb-1.5">
           <span class="text-[11px] font-semibold text-slate-500">2. 헤드 형태</span>
           <span class="text-[10px] text-amber-600 font-medium" id="headNotice">* 재질별 가능 규격만 활성화</span>
         </div>
-        <div class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto p-1 bg-slate-50 rounded-lg border border-slate-200" id="headContainer">
-          <!-- JS로 동적 렌더링 -->
-        </div>
+        <div class="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto p-1 bg-slate-50 rounded-lg border border-slate-200" id="headContainer"></div>
       </div>
 
       <!-- [C] 직경 & 길이 -->
@@ -171,16 +180,16 @@
       <!-- 선택된 품목 요약 & 담기 -->
       <div class="pt-1">
         <div class="p-2 bg-slate-100 rounded-lg text-xs font-medium text-slate-700 mb-2 truncate">
-          선택 품명: <span class="font-bold text-blue-900" id="previewSpecText">스텐 유두렌지 3x10</span>
+          선택 품명: <span class="font-bold text-blue-900" id="previewSpecText">스텐 유두렌지 M3x10L</span>
         </div>
-        <button onclick="addToCart()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition">
+        <button id="addCartBtn" onclick="addToCart()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition">
           <i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기
         </button>
       </div>
 
     </div>
 
-    <!-- 3. 발주 장바구니 -->
+    <!-- 3. 발주 내역 (장바구니) -->
     <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200">
       <div class="flex justify-between items-center mb-2">
         <h2 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
@@ -190,18 +199,14 @@
       </div>
 
       <div id="cartList" class="space-y-2 text-xs">
-        <div class="text-center py-6 text-slate-600 text-xs">
-          담긴 발주 품목이 없습니다.
-        </div>
+        <div class="text-center py-6 text-slate-600 text-xs">담긴 발주 품목이 없습니다.</div>
       </div>
 
-      <!-- 총계 -->
       <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between items-center text-xs">
         <span class="font-semibold text-slate-600">합계 수량:</span>
         <span class="text-base font-extrabold text-blue-900" id="totalOrderQty">0개</span>
       </div>
 
-      <!-- 비고란 -->
       <div class="mt-2.5">
         <input type="text" id="orderMemo" placeholder="요청사항 (예: 마대포장 요망, 경동화물 발송)"
           class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
@@ -210,17 +215,16 @@
 
   </main>
 
-  <!-- 하단 고정 접수 버튼 -->
+  <!-- 하단 발주 접수 버튼 -->
   <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-3 bg-white/95 backdrop-blur border-t border-slate-200 z-20">
-    <button id="submitBtn" onclick="submitOrder()" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition">
-      <i class="fa-solid fa-paper-plane"></i> 발주 접수하기
+    <button id="submitBtn" onclick="submitOrder()" disabled class="w-full bg-slate-300 cursor-not-allowed text-white font-bold py-3.5 rounded-xl shadow flex items-center justify-center gap-2 text-sm transition">
+      <i class="fa-solid fa-lock"></i> 거래처 인증 후 접수 가능
     </button>
   </div>
 
-  <!-- 접수 완료 카카오 알림톡 스타일 모달 -->
+  <!-- 접수 완료 영수증 모달 -->
   <div id="receiptModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 animate-fade-in text-xs max-h-[90vh] overflow-y-auto">
-      
       <div class="flex items-center justify-between border-b pb-2">
         <div class="flex items-center gap-2">
           <div class="w-6 h-6 rounded-full bg-blue-900 text-white flex items-center justify-center text-[10px] font-bold">HF</div>
@@ -229,29 +233,22 @@
         <button onclick="closeReceiptModal()" class="text-slate-600 text-base font-bold">&times;</button>
       </div>
 
-      <!-- 카톡 알림톡 카드 형태 -->
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 text-slate-800" id="receiptContent">
-        <div class="font-bold text-blue-950 text-sm">[현화스너(Hyun Fastener)] 출고/발주 접수 안내</div>
+        <div class="font-bold text-blue-950 text-sm">[현화스너] 발주 정상 접수</div>
         <p class="text-xs text-slate-600 leading-relaxed">
-          <span id="rcpCompany" class="font-bold text-slate-900">명성볼트(화성)</span> <span id="rcpCeo">최재용</span> 대표님, 주문하신 제품의 발주 내역이 성공적으로 접수되었습니다.
+          <span id="rcpCompany" class="font-bold text-slate-900"></span> <span id="rcpCeo"></span> 대표님, 주문하신 발주 내역이 성공적으로 접수되었습니다.
         </p>
 
         <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1 font-mono text-[11px]">
-          <div>■ <b>주문번호</b> : <span id="rcpOrderId" class="text-blue-600 font-bold">261026-12345-01</span></div>
-          <div>■ <b>접수일시</b> : <span id="rcpOrderDate">2026-10-26 17:30</span></div>
-          <div>■ <b>진행상태</b> : <span class="bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-sans font-bold">접수완료(DB기록됨)</span></div>
+          <div>■ <b>주문번호</b> : <span id="rcpOrderId" class="text-blue-600 font-bold"></span></div>
+          <div>■ <b>접수일시</b> : <span id="rcpOrderDate"></span></div>
+          <div>■ <b>상태</b> : <span class="bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-sans font-bold">접수완료(DB기록됨)</span></div>
         </div>
 
-        <div class="space-y-1 text-xs pt-1" id="rcpItemsList">
-          <!-- 품목 체크리스트 -->
-        </div>
+        <div class="space-y-1 text-xs pt-1" id="rcpItemsList"></div>
 
         <div class="text-[11px] text-slate-600 pt-1 border-t border-slate-200">
           ■ <b>배송지</b>: <span id="rcpAddr"></span>
-        </div>
-
-        <div class="text-[11px] text-slate-600">
-          항상 현화스너를 이용해 주셔서 감사합니다.
         </div>
       </div>
 
@@ -259,28 +256,68 @@
         <button onclick="copyReceiptText()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 py-2.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition">
           <i class="fa-regular fa-copy"></i> 내용 복사
         </button>
-        <button onclick="closeReceiptModal()" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold transition">
-          확인
-        </button>
+        <button onclick="closeReceiptModal()" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold transition">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신규 거래처 등록 신청 팝업 모달 -->
+  <div id="registerModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 text-xs max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b pb-2">
+        <div class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-building text-blue-600"></i> 현화스너 신규 거래처 등록 신청
+        </div>
+        <button onclick="closeRegisterModal()" class="text-slate-500 text-base font-bold">&times;</button>
       </div>
 
+      <form id="regForm" onsubmit="submitRegister(event)" class="space-y-2.5 pt-1">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">사업자등록번호 뒷 5자리 <span class="text-red-500">*</span></label>
+          <input type="text" id="regBizNo" required maxlength="5" placeholder="5자리 숫자 입력 (예: 12345)"
+            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">상호명 (거래처명) <span class="text-red-500">*</span></label>
+          <input type="text" id="regName" required placeholder="예: (주)한국볼트"
+            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">대표자명 <span class="text-red-500">*</span></label>
+            <input type="text" id="regCeo" required placeholder="홍길동"
+              class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-600 mb-1">연락처 <span class="text-red-500">*</span></label>
+            <input type="text" id="regPhone" required placeholder="010-0000-0000"
+              class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">기본 납품 주소 (배송지) <span class="text-red-500">*</span></label>
+          <textarea id="regAddr" required rows="2" placeholder="도로명 주소 및 상세 주소 (화물영업소 지점명 가능)"
+            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-2 text-[10px] leading-tight">
+          * 신청 제출 후 현화스너 관리자의 승인이 완료되면 발주서 작성이 가능합니다. (급한 발주는 1551-5456 문의)
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button type="button" onclick="closeRegisterModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-lg font-bold">취소</button>
+          <button type="submit" id="regSubmitBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold flex items-center justify-center gap-1">신청 접수</button>
+        </div>
+      </form>
     </div>
   </div>
 
   <script>
-    // -------------------------------------------------------------
-    // [연동 완료] 제공해주신 구글 Apps Script 웹 앱 주소
-    // -------------------------------------------------------------
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pC0BbJl-iwzj_J8tpOT8fBCmSbx7WM8gBIG6qWJT0fvHJ2fjMtbxF6UV7ll0FuJOjA/exec";
 
-    // 업체 기준 데이터 (사업자번호 뒷자리 매핑)
-    const companyDB = {
-      "12345": { name: "명성볼트(화성)", code: "MV", ceo: "최재용", phone: "010-8888-9999", addr: "경기도 화성시 향남읍 발안로 123" },
-      "56789": { name: "대성스크류", code: "DS", ceo: "홍길동", phone: "010-1234-5678", addr: "인천광역시 남동구 남동서로 45" },
-      "15510": { name: "현화스너 본사", code: "HF", ceo: "배진호", phone: "010-9999-5456", addr: "경기도 시흥시 산현동 목감호수품애" }
-    };
-
-    // 전체 헤드 목록
     const allHeads = [
       "유두렌지", "유두렌지SP/W", "유두렌지S/W", "유두렌지SP/W(大)", "사라렌지", "마루렌지", "낮은머리렌지",
       "유두별렌지", "사라별", "사라핀별", "마루별", "마루핀별",
@@ -288,59 +325,142 @@
       "P+", "F+", "T+", "B+", "P+SP/W", "P+S/W", "HEX+SP/W", "유두렌지(좌산)"
     ];
 
-    let currentCompany = companyDB["12345"];
+    let currentCompany = null;
     let selectedMat = "스텐";
     let selectedHead = "유두렌지";
     let selectedBagUnit = 1000;
     let cart = [];
 
-    // 초기 실행
     window.onload = function() {
       renderHeadOptions();
       updatePreviewText();
     };
 
-    // 1. 거래처 조회
-    function searchCompany() {
+    async function searchCompany() {
       const val = document.getElementById('bizInput').value.trim();
       if (!val) {
         alert("사업자등록번호 뒷자리를 입력해주세요.");
         return;
       }
 
-      if (companyDB[val]) {
-        currentCompany = companyDB[val];
-        document.getElementById('cName').innerText = currentCompany.name;
-        document.getElementById('cCode').innerText = "식별코드: " + currentCompany.code;
-        document.getElementById('cCeo').innerText = currentCompany.ceo;
-        document.getElementById('cPhone').innerText = currentCompany.phone;
-        document.getElementById('cAddr').innerText = currentCompany.addr;
-        alert(currentCompany.name + " 정보가 확인되었습니다.");
-      } else {
-        currentCompany = {
-          name: "임시 거래처(" + val + ")",
-          code: "TMP",
-          ceo: "담당자",
-          phone: "미등록",
-          addr: "기본 배송지 미지정"
-        };
-        document.getElementById('cName').innerText = currentCompany.name;
-        document.getElementById('cCode').innerText = "식별코드: TMP";
-        document.getElementById('cCeo').innerText = "담당자";
-        document.getElementById('cPhone').innerText = "-";
-        document.getElementById('cAddr').innerText = "신규/임시 발주";
-        alert("등록되지 않은 번호입니다. 임시 발주 상태로 접수됩니다.");
+      const searchBtnText = document.getElementById('searchBtnText');
+      searchBtnText.innerText = "조회중..";
+
+      try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?bizNo=${encodeURIComponent(val)}`);
+        const result = await response.json();
+
+        if (result.result === "success" && result.company) {
+          currentCompany = result.company;
+
+          document.getElementById('authBadge').className = "text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded";
+          document.getElementById('authBadge').innerText = "인증 완료";
+
+          document.getElementById('authHelpText').classList.add('hidden');
+          document.getElementById('companyDetails').classList.remove('hidden');
+
+          document.getElementById('cName').innerText = currentCompany.name;
+          document.getElementById('cCode').innerText = "코드: " + currentCompany.code;
+          document.getElementById('cCeo').innerText = currentCompany.ceo;
+          document.getElementById('cPhone').innerText = currentCompany.phone;
+          document.getElementById('cAddr').innerText = currentCompany.addr;
+
+          const submitBtn = document.getElementById('submitBtn');
+          submitBtn.disabled = false;
+          submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition";
+          submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> 발주 접수하기`;
+
+        } else if (result.result === "pending") {
+          lockAuth(`[${result.name}] 관리자 승인 대기 중입니다.\n현화스너(1551-5456)로 승인 문의 부탁드립니다.`, "승인 대기");
+        } else if (result.result === "blocked") {
+          lockAuth(`[${result.name}] 거래가 일시 정지된 거래처입니다.\n현화스너(1551-5456)로 문의 바랍니다.`, "거래 정지");
+        } else {
+          lockAuth("등록되지 않은 사업자번호입니다.\n아래 [신규 거래처 신청] 버튼을 눌러 등록 신청을 진행해 주세요.", "미등록");
+        }
+      } catch (err) {
+        alert("거래처 조회 중 통신 오류가 발생했습니다. 다시 시도해 주세요.");
+      } finally {
+        searchBtnText.innerText = "조회";
       }
     }
 
-    // 2. 재질 선택 및 헤드 필터링 규칙 적용
+    function lockAuth(message, badgeText) {
+      currentCompany = null;
+      document.getElementById('authBadge').className = "text-[11px] text-red-700 font-bold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded";
+      document.getElementById('authBadge').innerText = badgeText || "인증 실패";
+
+      document.getElementById('authHelpText').classList.remove('hidden');
+      document.getElementById('authHelpText').innerText = message;
+      document.getElementById('companyDetails').classList.add('hidden');
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-3.5 rounded-xl shadow flex items-center justify-center gap-2 text-sm transition";
+      submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> 거래처 인증 후 접수 가능`;
+
+      if (message) alert(message);
+    }
+
+    function openRegisterModal() {
+      const currentInput = document.getElementById('bizInput').value.trim();
+      if (currentInput) {
+        document.getElementById('regBizNo').value = currentInput;
+      }
+      document.getElementById('registerModal').classList.remove('hidden');
+    }
+
+    function closeRegisterModal() {
+      document.getElementById('registerModal').classList.add('hidden');
+    }
+
+    async function submitRegister(e) {
+      e.preventDefault();
+      const btn = document.getElementById('regSubmitBtn');
+      const originText = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = "신청 중...";
+
+      const payload = {
+        type: "register_client",
+        bizNo: document.getElementById('regBizNo').value.trim(),
+        companyName: document.getElementById('regName').value.trim(),
+        ceo: document.getElementById('regCeo').value.trim(),
+        phone: document.getElementById('regPhone').value.trim(),
+        address: document.getElementById('regAddr').value.trim()
+      };
+
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload)
+        });
+        const resJson = await res.json();
+
+        if (resJson.result === "success") {
+          alert(`신규 거래처 신청이 접수되었습니다! (부여코드: ${resJson.code})\n관리자 승인 완료 후 바로 발주하실 수 있습니다.`);
+          closeRegisterModal();
+          document.getElementById('bizInput').value = payload.bizNo;
+          document.getElementById('regForm').reset();
+        } else if (resJson.result === "duplicate") {
+          alert(resJson.message);
+        } else {
+          alert("신청 중 오류가 발생했습니다. 현화스너로 문의 바랍니다.");
+        }
+      } catch (err) {
+        alert("접수 중 오류가 발생했습니다: " + err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originText;
+      }
+    }
+
     function selectMat(mat, btn) {
       selectedMat = mat;
       document.querySelectorAll('.mat-btn').forEach(b => {
         b.className = "mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition";
       });
       btn.className = "mat-btn py-2 px-1 border border-blue-600 bg-blue-50 font-bold text-blue-700 rounded-lg text-center transition";
-
       renderHeadOptions();
       updatePreviewText();
     }
@@ -348,24 +468,15 @@
     function isHeadAllowed(mat, head) {
       const isPlusType = head.includes("+");
       const isSpecialPlus = (head === "P+SP/W" || head === "P+S/W" || head === "HEX+SP/W");
-
-      if (mat === "SCM-무전해") {
-        return !isPlusType;
-      }
-      if (mat === "철-NI") {
-        if (!isPlusType) return true;
-        return isSpecialPlus;
-      }
-      if (mat === "스텐" || mat === "스텐(316L)") {
-        return true;
-      }
+      if (mat === "SCM-무전해") return !isPlusType;
+      if (mat === "철-NI") return !isPlusType || isSpecialPlus;
+      if (mat === "스텐" || mat === "스텐(316L)") return true;
       return !isPlusType;
     }
 
     function renderHeadOptions() {
       const container = document.getElementById('headContainer');
       container.innerHTML = "";
-
       let firstValidHead = null;
 
       allHeads.forEach(head => {
@@ -399,7 +510,6 @@
       }
     }
 
-    // 3. 봉단위 및 수량 계산
     function selectBagUnit(unit, btn) {
       selectedBagUnit = unit;
       document.querySelectorAll('.bag-unit-btn').forEach(b => {
@@ -427,12 +537,16 @@
     function updatePreviewText() {
       const dia = document.getElementById('diaSelect').value;
       const len = document.getElementById('lenSelect').value;
-      const text = `${selectedMat} ${selectedHead} ${dia}x${len}`;
-      document.getElementById('previewSpecText').innerText = text;
+      document.getElementById('previewSpecText').innerText = `${selectedMat} ${selectedHead} ${dia}x${len}`;
     }
 
-    // 4. 장바구니 담기
     function addToCart() {
+      if (!currentCompany) {
+        alert("상단에서 등록된 사업자번호 뒷자리를 먼저 조회(인증)해 주세요.");
+        document.getElementById('bizInput').focus();
+        return;
+      }
+
       const dia = document.getElementById('diaSelect').value;
       const len = document.getElementById('lenSelect').value;
       const bags = parseInt(document.getElementById('bagCount').value) || 1;
@@ -497,8 +611,11 @@
       }
     }
 
-    // 5. 발주 접수 및 구글 스프레드시트 실시간 전송
     async function submitOrder() {
+      if (!currentCompany) {
+        alert("거래처 인증이 필요합니다.");
+        return;
+      }
       if (cart.length === 0) {
         alert("발주할 품목을 먼저 담아주세요.");
         return;
@@ -507,27 +624,24 @@
       const submitBtn = document.getElementById('submitBtn');
       const originBtnHtml = submitBtn.innerHTML;
 
-      // 버튼 로딩 상태 표시
       submitBtn.disabled = true;
-      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 현화스너 서버로 전송 중...`;
+      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 현화스너 전송 중...`;
 
-      // 주문번호 생성 (YYMMDD-업체식별-01)
       const now = new Date();
       const yy = String(now.getFullYear()).slice(-2);
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');
-      const dateStr = `${yy}${mm}${dd}`;
-      const orderId = `${dateStr}-${currentCompany.code}01`;
+      const orderId = `${yy}${mm}${dd}-${currentCompany.code}-01`;
 
       const memo = document.getElementById('orderMemo').value.trim();
       const totalQuantity = cart.reduce((sum, item) => sum + item.totalQty, 0);
 
-      // 구글 시트로 보낼 데이터 조립
       const payload = {
+        type: "order",
         orderDate: now.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
         orderId: orderId,
         companyName: currentCompany.name,
-        bizNo: document.getElementById('bizInput').value.trim() || "기본",
+        bizNo: currentCompany.bizNo,
         manager: currentCompany.ceo,
         phone: currentCompany.phone,
         address: currentCompany.addr,
@@ -537,29 +651,25 @@
       };
 
       try {
-        // Google Apps Script로 비동기 POST 전송 (no-cors 브라우저 호환)
         await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
         });
 
-        // 결과 모달 표시
         showReceipt(orderId, payload.orderDate);
         cart = [];
         renderCart();
         document.getElementById('orderMemo').value = "";
 
       } catch (err) {
-        alert("접수 중 통신 오류가 발생했습니다. 다시 시도해 주세요.\n" + err);
+        alert("접수 중 오류가 발생했습니다. 다시 시도해 주세요.\n" + err);
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = originBtnHtml;
       }
     }
 
-    // 6. 알림톡 스타일 영수증 모달
     function showReceipt(orderId, dateStr) {
       document.getElementById('rcpCompany').innerText = currentCompany.name;
       document.getElementById('rcpCeo').innerText = currentCompany.ceo;
@@ -573,7 +683,7 @@
         itemsHtml += `
           <div class="flex items-start gap-1.5">
             <span class="text-blue-600 font-bold">☑</span>
-            <span class="text-slate-800">${item.name} (${item.packaging} × ${item.bags}봉) — <b>${item.totalQty.toLocaleString()}개</b> 정상접수</span>
+            <span class="text-slate-800">${item.name} (${item.packaging} × ${item.bags}봉) — <b>${item.totalQty.toLocaleString()}개</b></span>
           </div>
         `;
       });
@@ -589,7 +699,7 @@
     function copyReceiptText() {
       const text = document.getElementById('receiptContent').innerText;
       navigator.clipboard.writeText(text).then(() => {
-        alert("카카오톡 전송용 영수증 텍스트가 클립보드에 복사되었습니다!");
+        alert("영수증 내용이 클립보드에 복사되었습니다.");
       });
     }
   </script>
