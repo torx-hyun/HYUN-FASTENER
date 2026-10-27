@@ -43,7 +43,7 @@
         <span id="authBadge" class="text-[11px] text-amber-700 font-bold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">인증 필요</span>
       </div>
 
-      <!-- 입력창 (인증 전 표시) -->
+      <!-- 인증 전 입력창 -->
       <div id="bizInputArea" class="relative flex gap-1.5">
         <input type="text" id="bizInput" placeholder="사업자번호 뒷 5자리 (예: 48452)" maxlength="5"
           class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono tracking-wider">
@@ -75,7 +75,7 @@
         </div>
       </div>
 
-      <!-- 신규 거래처 등록 신청 안내 -->
+      <!-- 신규 거래처 신청 안내 -->
       <div id="newClientArea" class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-center text-[11px]">
         <span class="text-slate-500">처음 발주하시는 거래처이신가요?</span>
         <button type="button" onclick="openRegisterModal()" class="text-blue-600 font-bold hover:underline flex items-center gap-1">
@@ -117,36 +117,35 @@
       <div class="grid grid-cols-2 gap-2">
         <div>
           <span class="text-[11px] font-semibold text-slate-500 block mb-1">3. 호칭경 (직경)</span>
-          <select id="diaSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updatePreviewText()">
-            <option value="M1.6">M1.6</option>
-            <option value="M2">M2</option>
-            <option value="M2.5">M2.5</option>
-            <option value="M2.6">M2.6</option>
-            <option value="M3" selected>M3</option>
-            <option value="M4">M4</option>
-            <option value="M5">M5</option>
-            <option value="M6">M6</option>
-            <option value="M8">M8</option>
-            <option value="M10">M10</option>
-            <option value="1/4(INCH)">1/4 (인치)</option>
-            <option value="5/16(INCH)">5/16 (인치)</option>
+          <select id="diaSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onSpecChange()">
+            <option value="1.6">M1.6</option>
+            <option value="2">M2</option>
+            <option value="2.5">M2.5</option>
+            <option value="2.6">M2.6</option>
+            <option value="3" selected>M3</option>
+            <option value="4">M4</option>
+            <option value="5">M5</option>
+            <option value="6">M6</option>
+            <option value="8">M8</option>
+            <option value="10">M10</option>
           </select>
         </div>
         <div>
           <span class="text-[11px] font-semibold text-slate-500 block mb-1">4. 길이 (L)</span>
-          <select id="lenSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="updatePreviewText()">
-            <option value="4L">4L</option>
-            <option value="5L">5L</option>
-            <option value="6L">6L</option>
-            <option value="8L">8L</option>
-            <option value="10L" selected>10L</option>
-            <option value="12L">12L</option>
-            <option value="15L">15L</option>
-            <option value="20L">20L</option>
-            <option value="25L">25L</option>
-            <option value="30L">30L</option>
-            <option value="35L">35L</option>
-            <option value="40L">40L</option>
+          <select id="lenSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onSpecChange()">
+            <option value="2.5">2.5L</option>
+            <option value="3">3L</option>
+            <option value="4">4L</option>
+            <option value="5">5L</option>
+            <option value="6">6L</option>
+            <option value="8">8L</option>
+            <option value="10" selected>10L</option>
+            <option value="12">12L</option>
+            <option value="14">14L</option>
+            <option value="15">15L</option>
+            <option value="20">20L</option>
+            <option value="25">25L</option>
+            <option value="30">30L</option>
           </select>
         </div>
       </div>
@@ -175,17 +174,23 @@
           </div>
 
           <div class="text-right">
-            <span class="text-[10px] text-slate-600 block">총 수량</span>
+            <span class="text-[10px] text-slate-600 block">총 발주 수량</span>
             <span class="text-sm font-extrabold text-blue-700" id="calcQtyResult">1,000개</span>
           </div>
         </div>
       </div>
 
-      <!-- 선택된 품목 요약 & 담기 -->
-      <div class="pt-1">
-        <div class="p-2 bg-slate-100 rounded-lg text-xs font-medium text-slate-700 mb-2 truncate">
-          선택 품명: <span class="font-bold text-blue-900" id="previewSpecText">스텐 유두렌지 M3x10L</span>
+      <!-- 선택된 품목 요약 & 재고 상태 & 담기 -->
+      <div class="pt-1 space-y-2">
+        <div class="p-2.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-700 flex justify-between items-center">
+          <div class="truncate mr-2">
+            선택: <span class="font-bold text-blue-900" id="previewSpecText">스텐 유두렌지 (3*10)</span>
+          </div>
+          <div id="stockBadge" class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">
+            재고 확인중..
+          </div>
         </div>
+
         <button id="addCartBtn" onclick="addToCart()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition">
           <i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기
         </button>
@@ -333,28 +338,26 @@
     let selectedMat = "스텐";
     let selectedHead = "유두렌지";
     let selectedBagUnit = 1000;
+    let currentStockData = { available: true, stock: 999999, isPackingWaiting: false };
     let cart = [];
 
     window.onload = function() {
       renderHeadOptions();
-      updatePreviewText();
-      loadSavedCompany(); // 기존 로그인 정보 자동 복원
+      loadSavedCompany();
+      onSpecChange();
     };
 
-    // 로컬 스토리지에서 자동 복원
     function loadSavedCompany() {
       const saved = localStorage.getItem("hf_auth_company");
       if (saved) {
         try {
-          const comp = JSON.parse(saved);
-          applyAuthenticatedCompany(comp);
+          applyAuthenticatedCompany(JSON.parse(saved));
         } catch (e) {
           localStorage.removeItem("hf_auth_company");
         }
       }
     }
 
-    // 인증 정보 화면 적용 공통 함수
     function applyAuthenticatedCompany(company) {
       currentCompany = company;
 
@@ -378,7 +381,6 @@
       submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> 발주 접수하기`;
     }
 
-    // 인증 해제 / 다른 번호로 변경
     function resetAuth() {
       if (confirm("거래처 인증을 해제하고 다른 번호로 변경하시겠습니까?")) {
         localStorage.removeItem("hf_auth_company");
@@ -417,7 +419,6 @@
         const result = await response.json();
 
         if (result.result === "success" && result.company) {
-          // 기기에 영구 저장 (자동 로그인)
           localStorage.setItem("hf_auth_company", JSON.stringify(result.company));
           applyAuthenticatedCompany(result.company);
         } else if (result.result === "pending") {
@@ -513,7 +514,7 @@
       });
       btn.className = "mat-btn py-2 px-1 border border-blue-600 bg-blue-50 font-bold text-blue-700 rounded-lg text-center transition";
       renderHeadOptions();
-      updatePreviewText();
+      onSpecChange();
     }
 
     function isHeadAllowed(mat, head) {
@@ -544,7 +545,7 @@
           btn.onclick = () => {
             selectedHead = head;
             renderHeadOptions();
-            updatePreviewText();
+            onSpecChange();
           };
         } else {
           btn.className = "px-2.5 py-1.5 rounded-md text-xs font-normal bg-slate-200/60 text-slate-600 line-through cursor-not-allowed";
@@ -585,10 +586,51 @@
       document.getElementById('calcQtyResult').innerText = total.toLocaleString() + "개";
     }
 
-    function updatePreviewText() {
+    // 규격 변경 시 실시간 재고 확인
+    let stockTimer = null;
+    function onSpecChange() {
       const dia = document.getElementById('diaSelect').value;
       const len = document.getElementById('lenSelect').value;
-      document.getElementById('previewSpecText').innerText = `${selectedMat} ${selectedHead} ${dia}x${len}`;
+      const fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
+      document.getElementById('previewSpecText').innerText = fullName;
+
+      const badge = document.getElementById('stockBadge');
+      const addBtn = document.getElementById('addCartBtn');
+
+      badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700";
+      badge.innerText = "재고 확인중..";
+
+      if (stockTimer) clearTimeout(stockTimer);
+      stockTimer = setTimeout(async () => {
+        try {
+          const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${encodeURIComponent(fullName)}`);
+          const data = await res.json();
+          currentStockData = data;
+
+          if (!data.available) {
+            badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
+            badge.innerText = "품절 (재고소진)";
+            addBtn.disabled = true;
+            addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
+            addBtn.innerHTML = `<i class="fa-solid fa-ban"></i> 현재 품절된 규격입니다`;
+          } else {
+            addBtn.disabled = false;
+            addBtn.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition";
+            addBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기`;
+
+            if (data.isPackingWaiting) {
+              badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
+              badge.innerText = "포장대기중 (주문가능)";
+            } else {
+              badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+              badge.innerText = `재고 여유 (${data.stock.toLocaleString()}개)`;
+            }
+          }
+        } catch (e) {
+          badge.innerText = "주문가능";
+          currentStockData = { available: true, stock: 999999 };
+        }
+      }, 300);
     }
 
     function addToCart() {
@@ -601,10 +643,22 @@
       const len = document.getElementById('lenSelect').value;
       const bags = parseInt(document.getElementById('bagCount').value) || 1;
       const totalQty = selectedBagUnit * bags;
-      const specName = `${selectedMat} ${selectedHead} ${dia}x${len}`;
+      const fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
+
+      // 재고 소진 검증
+      if (!currentStockData.available) {
+        alert("해당 품목은 현재 재고가 없어 발주가 불가합니다. (현화스너 1551-5456 문의)");
+        return;
+      }
+
+      // 수량 초과 검증 (포장대기가 아니고 실제 재고 수량이 명시된 경우)
+      if (!currentStockData.isPackingWaiting && currentStockData.stock < 900000 && totalQty > currentStockData.stock) {
+        alert(`[재고량 부족]\n현재 주문 가능 수량은 ${currentStockData.stock.toLocaleString()}개입니다.\n선택하신 수량(${totalQty.toLocaleString()}개)보다 부족합니다.\n\n대량 주문 및 납기 확인은 현화스너(1551-5456)로 문의해 주세요.`);
+        return;
+      }
 
       cart.push({
-        name: specName,
+        name: fullName,
         packaging: selectedBagUnit.toLocaleString() + "개입",
         bags: bags,
         totalQty: totalQty
