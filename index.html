@@ -586,53 +586,53 @@
       document.getElementById('calcQtyResult').innerText = total.toLocaleString() + "개";
     }
 
-    // 규격 변경 시 실시간 재고 확인
-    let stockTimer = null;
-    function onSpecChange() {
-      const dia = document.getElementById('diaSelect').value;
-      const len = document.getElementById('lenSelect').value;
-      const fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
-      document.getElementById('previewSpecText').innerText = fullName;
+// 규격 변경 시 실시간 재고 확인
+let stockTimer = null;
+function onSpecChange() {
+  const dia = document.getElementById('diaSelect').value;
+  const len = document.getElementById('lenSelect').value;
+  const fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
+  document.getElementById('previewSpecText').innerText = fullName;
 
-      const badge = document.getElementById('stockBadge');
-      const addBtn = document.getElementById('addCartBtn');
+  const badge = document.getElementById('stockBadge');
+  const addBtn = document.getElementById('addCartBtn');
 
-      badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700";
-      badge.innerText = "재고 확인중..";
+  badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700";
+  badge.innerText = "재고 확인중..";
 
-      if (stockTimer) clearTimeout(stockTimer);
-      stockTimer = setTimeout(async () => {
-        try {
-          const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${encodeURIComponent(fullName)}`);
-          const data = await res.json();
-          currentStockData = data;
+  if (stockTimer) clearTimeout(stockTimer);
+  stockTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${encodeURIComponent(fullName)}`);
+      const data = await res.json();
+      currentStockData = data;
 
-          if (!data.available) {
-            badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
-            badge.innerText = "품절 (재고소진)";
-            addBtn.disabled = true;
-            addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
-            addBtn.innerHTML = `<i class="fa-solid fa-ban"></i> 현재 품절된 규격입니다`;
-          } else {
-            addBtn.disabled = false;
-            addBtn.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition";
-            addBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기`;
+      if (!data.available) {
+        badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
+        badge.innerText = data.result === "not_found" ? "취급/재고 없음" : "품절 (재고소진)";
+        addBtn.disabled = true;
+        addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
+        addBtn.innerHTML = `<i class="fa-solid fa-ban"></i> 발주 불가 (재고/규격 없음)`;
+      } else {
+        addBtn.disabled = false;
+        addBtn.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition";
+        addBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기`;
 
-            if (data.isPackingWaiting) {
-              badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
-              badge.innerText = "포장대기중 (주문가능)";
-            } else {
-              badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
-              badge.innerText = `재고 여유 (${data.stock.toLocaleString()}개)`;
-            }
-          }
-        } catch (e) {
-          badge.innerText = "주문가능";
-          currentStockData = { available: true, stock: 999999 };
+        if (data.isPackingWaiting) {
+          badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
+          badge.innerText = "포장대기중 (주문가능)";
+        } else {
+          badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
+          badge.innerText = `재고 여유 (${data.stock.toLocaleString()}개)`;
         }
-      }, 300);
+      }
+    } catch (e) {
+      badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
+      badge.innerText = "조회 실패";
+      currentStockData = { available: false, stock: 0 };
     }
-
+  }, 300);
+}
     function addToCart() {
       if (!currentCompany) {
         alert("상단에서 등록된 사업자번호 뒷자리를 먼저 조회(인증)해 주세요.");
