@@ -598,31 +598,27 @@ function isHeadAllowed(mat, head) {
       container.innerHTML = "";
       let firstValidHead = null;
 
-      allHeads.forEach(head => {
-        const allowed = isHeadAllowed(selectedMat, head);
-        const btn = document.createElement('button');
-        btn.type = "button";
+   allHeads.forEach(head => {
+    const allowed = isHeadAllowed(selectedMat, head);
+    if (!allowed) return; // 없는 품목은 버튼을 만들지 않고 아예 숨김
 
-        if (allowed) {
-          if (!firstValidHead) firstValidHead = head;
-          const isSelected = (head === selectedHead);
-          btn.className = isSelected 
-            ? "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm"
-            : "px-2.5 py-1.5 rounded-md text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-100";
-          btn.onclick = () => {
-            selectedHead = head;
-            renderHeadOptions();
-            updateSpecDropdowns();
-          };
-        } else {
-          btn.className = "px-2.5 py-1.5 rounded-md text-xs font-normal bg-slate-200/60 text-slate-400 line-through cursor-not-allowed";
-          btn.disabled = true;
-        }
+    const btn = document.createElement('button');
+    btn.type = "button";
 
-        btn.innerText = head;
-        container.appendChild(btn);
-      });
+    if (!firstValidHead) firstValidHead = head;
+    const isSelected = (head === selectedHead);
+    btn.className = isSelected
+      ? "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm"
+      : "px-2.5 py-1.5 rounded-md text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-100";
+    btn.onclick = () => {
+      selectedHead = head;
+      renderHeadOptions();
+      updateSpecDropdowns();
+    };
 
+    btn.innerText = head;
+    container.appendChild(btn);
+  });
       if (!isHeadAllowed(selectedMat, selectedHead)) {
         selectedHead = firstValidHead || "유두렌지";
         renderHeadOptions();
