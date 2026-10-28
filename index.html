@@ -516,12 +516,15 @@
         }
       }
 
-      // 일반 규격
-      if (mat === "SCM-무전해" || mat === "SCM-착색") return !isPlus;
-      if (mat === "철-NI") return !isPlus || (head === "P+SP/W" || head === "P+S/W" || head === "HEX+SP/W");
-      if (mat === "철-천연색") return isPlus;
-      if (mat === "스텐" || mat === "스텐(316L)") return true;
-      return true;
+     // 일반 규격
+  if (mat === "스텐(316L)") {
+    return ["유두렌지", "사라렌지", "마루렌지", "유두렌지SP/W"].includes(head);
+  }
+  if (mat === "SCM-무전해" || mat === "SCM-착색") return !isPlus;
+  if (mat === "철-NI") return !isPlus || (head === "P+SP/W" || head === "P+S/W" || head === "HEX+SP/W");
+  if (mat === "철-천연색") return isPlus;
+  if (mat === "스텐") return true;
+  return true;
     }
 
     function renderHeadOptions() {
