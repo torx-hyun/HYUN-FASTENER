@@ -664,7 +664,9 @@
         console.log("요청 보낸 품명:", fullName);
         console.log("서버가 보낸 실제 응답:", data);
         currentStockData = data;
-
+if (data.result === "found" && data.packQty) {
+          updatePackUnitButtons(data.packQty);
+        }
           if (!data.available) {
             badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
             badge.innerText = "품절 (재고 소진)";
@@ -863,6 +865,30 @@
         alert("영수증 내용이 클립보드에 복사되었습니다.");
       });
     }
+    // 시트의 포장단위와 일치하는 버튼만 활성화하고 자동 클릭하는 함수
+function updatePackUnitButtons(targetQty) {
+  const buttons = document.querySelectorAll("button");
+  
+  buttons.forEach(btn => {
+    const text = btn.innerText.replace(/[^0-9]/g, ''); // 숫자만 추출 (예: "1,000" -> "1000")
+    if (["2000", "1000", "500", "300", "200", "100"].includes(text)) {
+      const btnQty = parseInt(text);
+      
+      if (btnQty === targetQty) {
+        // 일치하는 포장단위: 활성화 및 자동 선택
+        btn.disabled = false;
+        btn.classList.remove("opacity-30", "cursor-not-allowed", "bg-slate-100", "text-slate-400");
+        btn.classList.add("bg-amber-100", "border-amber-500", "text-amber-900", "font-bold");
+        btn.click();
+      } else {
+        // 일치하지 않는 포장단위: 비활성화 및 잠금
+        btn.disabled = true;
+        btn.classList.add("opacity-30", "cursor-not-allowed", "bg-slate-100", "text-slate-400");
+        btn.classList.remove("bg-amber-100", "border-amber-500", "text-amber-900", "font-bold");
+      }
+    }
+  });
+}
   </script>
 </body>
 </html>
