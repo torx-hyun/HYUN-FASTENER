@@ -865,29 +865,39 @@ if (data.result === "found" && data.packQty) {
         alert("영수증 내용이 클립보드에 복사되었습니다.");
       });
     }
-    // 시트의 포장단위와 일치하는 버튼만 활성화하고 자동 클릭하는 함수
+// 시트의 포장단위(G열)와 일치하는 버튼만 활성화하고 나머지는 비활성화하는 함수
 function updatePackUnitButtons(targetQty) {
-  const buttons = document.querySelectorAll("button");
-  
+  const container = document.getElementById("bagTypeGroup");
+  if (!container) return;
+
+  const buttons = container.querySelectorAll(".bag-unit-btn");
+  let targetBtn = null;
+
   buttons.forEach(btn => {
-    const text = btn.innerText.replace(/[^0-9]/g, ''); // 숫자만 추출 (예: "1,000" -> "1000")
-    if (["2000", "1000", "500", "300", "200", "100"].includes(text)) {
-      const btnQty = parseInt(text);
-      
-      if (btnQty === targetQty) {
-        // 일치하는 포장단위: 활성화 및 자동 선택
-        btn.disabled = false;
-        btn.classList.remove("opacity-30", "cursor-not-allowed", "bg-slate-100", "text-slate-400");
-        btn.classList.add("bg-amber-100", "border-amber-500", "text-amber-900", "font-bold");
-        btn.click();
-      } else {
-        // 일치하지 않는 포장단위: 비활성화 및 잠금
-        btn.disabled = true;
-        btn.classList.add("opacity-30", "cursor-not-allowed", "bg-slate-100", "text-slate-400");
-        btn.classList.remove("bg-amber-100", "border-amber-500", "text-amber-900", "font-bold");
-      }
+    // 버튼 텍스트에서 숫자만 추출 (예: "2,000" -> 2000)
+    const btnQty = parseInt(btn.innerText.replace(/[^0-9]/g, ''));
+
+    if (btnQty === targetQty) {
+      // 1. 해당 포장단위 버튼: 클릭 가능하도록 활성화
+      btn.disabled = false;
+      btn.style.pointerEvents = "auto";
+      btn.style.opacity = "1";
+      btn.style.textDecoration = "none";
+      targetBtn = btn;
+    } else {
+      // 2. 다른 포장단위 버튼: 클릭 완전 차단 + 흐리게 + 취소선 처리
+      btn.disabled = true;
+      btn.style.pointerEvents = "none";
+      btn.style.opacity = "0.3";
+      btn.style.textDecoration = "line-through";
+      btn.className = "bag-unit-btn py-1.5 border border-slate-200 bg-slate-100 rounded font-medium text-center text-slate-400";
     }
   });
+
+  // 해당되는 포장단위 버튼을 자동으로 눌러서 수량 계산까지 바로 반영
+  if (targetBtn && typeof selectBagUnit === "function") {
+    selectBagUnit(targetQty, targetBtn);
+  }
 }
   </script>
 </body>
