@@ -661,6 +661,9 @@
           const safeKey = encodeURIComponent(fullName);
           const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${safeKey}`);
           const data = await res.json();
+          const data = await res.json();
+        console.log("서버가 보낸 실제 응답:", data); // <-- 이 줄 추가
+        currentStockData = data;
           currentStockData = data;
 
           if (!data.available) {
