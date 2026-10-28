@@ -733,7 +733,7 @@ function isHeadAllowed(mat, head) {
 if (data.result === "found" && data.packQty) {
           updatePackUnitButtons(data.packQty);
         }
-          if (!data.available) {
+          if (!data.available && !data.isPackingWaiting) {
             badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
             badge.innerText = "품절 (재고 소진)";
             addBtn.disabled = true;
