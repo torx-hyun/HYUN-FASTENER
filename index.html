@@ -507,7 +507,7 @@ function isHeadAllowed(mat, head) {
   const clean = (str) => String(str || "").replace(/[\s\-_/()大]/g, "").toLowerCase();
   const cHead = clean(head);
 
-  // 1. 스텐 (304)
+// 1. 스텐 (304)
   if (mat === "스텐" || mat === "스텐 (304)" || mat === "스텐(304)") {
     const allowed = [
       "유두렌지", "유두렌지spw", "유두렌지sw", "스텐유두렌지spw대", "유두렌지spw대",
@@ -515,6 +515,7 @@ function isHeadAllowed(mat, head) {
       "유두별", "유두별렌지", "사라별", "마루별", "사라핀별", "마루핀별",
       "유두렌지inch", "사라렌지inch", "마루렌지inch",
       "p+inch", "f+inch", "t+inch",
+      "p+", "f+", "t+", "b+", "o+",
       "p+ms", "f+ms", "o+ms", "t+ms", "b+ms",
       "p+spw", "p+sw", "hexspw", "hexspw대", "hex+spw",
       "sw렌지용", "sw", "pw"
