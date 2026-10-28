@@ -561,8 +561,8 @@ function isHeadAllowed(mat, head) {
     return false;
   }
 
-  // 6. SCM-무전해 -> "scm무전해"로 매칭
-  if (cMat === "scm무전해") {
+// 6. SCM-무전해 및 무전해 버튼 매칭
+  if (cMat === "scm무전해" || cMat === "무전해") {
     const allowed = [
       "유두렌지", "유두렌지spw", "유두렌지sw",
       "사라렌지", "마루렌지",
@@ -571,8 +571,8 @@ function isHeadAllowed(mat, head) {
     return allowed.some(item => clean(item) === cHead);
   }
 
-  // 7. SCM-NI -> "scmni"로 매칭
-  if (cMat === "scmni") {
+  // 7. SCM-NI 매칭
+  if (cMat === "scmni" || cMat === "scm-ni") {
     const allowed = [
       "유두렌지", "유두렌지spw", "유두렌지sw",
       "사라렌지", "마루렌지",
