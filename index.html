@@ -659,12 +659,11 @@
       stockTimer = setTimeout(async () => {
         try {
           const safeKey = encodeURIComponent(fullName);
-          const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${safeKey}`);
-          const data = await res.json();
-          const data = await res.json();
-        console.log("서버가 보낸 실제 응답:", data); // <-- 이 줄 추가
+   const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${safeKey}`);
+        const data = await res.json();
+        console.log("요청 보낸 품명:", fullName);
+        console.log("서버가 보낸 실제 응답:", data);
         currentStockData = data;
-          currentStockData = data;
 
           if (!data.available) {
             badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
