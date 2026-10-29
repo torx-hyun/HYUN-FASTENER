@@ -784,7 +784,8 @@ function isHeadAllowed(mat, head) {
   // 직경 값에서 'M' 또는 공백 제거 (예: "M2" -> "2")
   const dia = diaRaw ? String(diaRaw).replace(/^M/i, '').trim() : '';
 
-  let m = selectedMat || '';
+let m = selectedMat || '';
+  if (m === "SCM-착색") m = "착색";
   let h = selectedHead || '';
   const isInch = h.includes("INCH");
 
