@@ -304,7 +304,6 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pC0BbJl-iwzj_J8tpOT8fBCmSbx7WM8gBIG6qWJT0fvHJ2fjMtbxF6UV7ll0FuJOjA/exec";
 
-    const allHeads = [
      const allHeads = [
   "S/W", "P/W",
   "유두렌지", "유두렌지SP/W", "유두렌지SP/W(12.9)", "유두렌지S/W", "유두렌지S/W(12.9)", "유두렌지SP/W(大)", "사라렌지", "마루렌지", "낮은머리렌지",
@@ -516,6 +515,18 @@ function isHeadAllowed(mat, head) {
         return false;
       }
     }
+  // [무전해] 전용 필터: (大) 제외 및 S/W, P/W 노출
+  if (cMat.includes("무전해")) {
+    if (String(head || "").includes("大") || String(head || "").includes("대")) {
+      return false;
+    }
+    const allowedMoo = [
+      "유두렌지", "유두렌지spw", "유두렌지spw129", "유두렌지sw", "유두렌지sw129",
+      "사라렌지", "마루렌지",
+      "sw", "pw"
+    ];
+    return allowedMoo.includes(clean(head));
+  }
   // 1. 스텐 (304) -> "스텐", "스텐304" 모두 인식
   if (cMat === "스텐" || cMat === "스텐304") {
     const allowed = [
