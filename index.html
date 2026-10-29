@@ -524,18 +524,22 @@ function isHeadAllowed(mat, head) {
     return allowed.some(item => clean(item) === cHead);
   }
 
-// 2. 스텐 (316L) -> "스텐316l"로 완벽 매칭
-  if (cMat === "스텐316l") {
+// 2. 스텐 (316L) 매칭 (대문자 L, 소문자 l 모두 지원 / 大 와샤 완벽 차단)
+  if (cMat === "스텐316l" || cMat === "스텐316L" || cMat === "스텐3161") {
+    // 버튼 텍스트(head)에 '大'나 '대'가 들어있으면 316L에서는 무조건 숨김
+    if (String(head || "").includes("大") || String(head || "").includes("대")) {
+      return false;
+    }
+
     const allowed = [
-      "유두렌지", "유두렌지316l",
-      "유두렌지spw", "유두렌지spw316l",
-      "사라렌지", "사라렌지316l",
-      "마루렌지", "마루렌지316l",
+      "유두렌지", "유두렌지316l", "유두렌지316L",
+      "유두렌지spw", "유두렌지spw316l", "유두렌지spw316L",
+      "사라렌지", "사라렌지316l", "사라렌지316L",
+      "마루렌지", "마루렌지316l", "마루렌지316L",
       "sw", "pw"
     ];
     return allowed.some(item => clean(item) === cHead);
   }
-
   // 3. 철-NI -> "철ni"로 매칭
   if (cMat === "철ni") {
     const allowed = [
