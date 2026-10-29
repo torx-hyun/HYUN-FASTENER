@@ -667,14 +667,28 @@ function isHeadAllowed(mat, head) {
           if (d === "3") opt.selected = true;
           diaSelect.appendChild(opt);
         });
+// 1. 기본 미터 길이 목록 복사
+    let currentLens = [...metricLens];
 
-        metricLens.forEach(l => {
-          const opt = document.createElement('option');
-          opt.value = l;
-          opt.innerText = l + "L";
-          if (l === "10") opt.selected = true;
-          lenSelect.appendChild(opt);
-        });
+    // 2. 니켈(SCM-NI) 계열이면서 직경이 3, 4, 5일 때 7과 9 길이 자동 추가
+    const isNickel = selectedMat.includes("니켈") || selectedMat.includes("NI") || selectedMat.includes("ni");
+    const currentDia = String(diaSelect.value || selectedDia || "3");
+    const isSpecialDia = ["3", "4", "5"].includes(currentDia);
+
+    if (isNickel && isSpecialDia) {
+      if (!currentLens.includes("7")) currentLens.push("7");
+      if (!currentLens.includes("9")) currentLens.push("9");
+      currentLens.sort((a, b) => parseFloat(a) - parseFloat(b));
+    }
+
+    // 3. 길이 드롭다운 옵션 생성
+    currentLens.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l;
+      opt.innerText = l + "L";
+      if (l === "10") opt.selected = true;
+      lenSelect.appendChild(opt);
+    });
       }
 
       onSpecChange();
