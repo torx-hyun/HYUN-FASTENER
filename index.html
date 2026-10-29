@@ -510,7 +510,7 @@ function isHeadAllowed(mat, head) {
   const clean = (str) => String(str || "").replace(/[\s\-_/()大]/g, "").toLowerCase();
   const cMat = clean(mat);
   const cHead = clean(head);
-
+if (cMat.includes("착색") && (cHead === "sw" || cHead === "pw")) return false;
   // 1. SCM-NI는 '大', '대', '사라핀별' 무조건 차단
   if (cMat === "scmni" || cMat === "scm-ni") {
     const h = String(head || "");
