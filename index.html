@@ -665,7 +665,25 @@ function isHeadAllowed(mat, head) {
 
       diaSelect.innerHTML = "";
       lenSelect.innerHTML = "";
-
+// 와셔(S/W, P/W) 전용 분기: 호칭경만 2~12로 채우고 길이는 '-' 처리
+    const isWasher = (selectedHead === "S/W" || selectedHead === "P/W");
+    if (isWasher) {
+      lenSelect.disabled = true;
+      const washerDias = ["2", "2.5", "3", "4", "5", "6", "8", "10", "12"];
+      washerDias.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.innerText = "M" + d;
+        diaSelect.appendChild(opt);
+      });
+      const opt = document.createElement('option');
+      opt.value = "";
+      opt.innerText = "-";
+      lenSelect.appendChild(opt);
+      return;
+    } else {
+      lenSelect.disabled = false;
+    }
       if (isInch) {
         // 인치 규격 분기: 스텐 사라만 #2부터, 나머지는 #4부터
         const dias = (selectedMat === "스텐" && selectedHead === "사라렌지(INCH)") 
