@@ -98,7 +98,7 @@
           <button type="button" onclick="selectMat('스텐(316L)', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">스텐(316L)</button>
           <button type="button" onclick="selectMat('니켈', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">철-NI</button>
           <button type="button" onclick="selectMat('SCM-NI', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">SCM-NI</button>
-          <button type="button" onclick="selectMat('무전해', this)" ...>무전해</button>
+          <button type="button" class="btn btn-outline-secondary mat-btn" data-mat="무전해">무전해</button>
           <button type="button" onclick="selectMat('SCM-착색', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">SCM-착색</button>
           <button type="button" onclick="selectMat('천연색', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">천연색</button>
         </div>
@@ -508,16 +508,19 @@ function isHeadAllowed(mat, head) {
   const clean = (str) => String(str || "").replace(/[\s\-_/()大]/g, "").toLowerCase();
   const cMat = clean(mat);
   const cHead = clean(head);
-// SCM-NI는 '大' 및 '사라핀별' 버튼 무조건 차단
+
+  // 1. SCM-NI는 '大', '대', '사라핀별' 무조건 차단
   if (cMat === "scmni" || cMat === "scm-ni") {
-      const h = String(head || "");
-      if (h.includes("大") || h.includes("대") || h === "사라핀별" || cHead.includes("대")) {
-        return false;
-      }
+    const h = String(head || "");
+    if (h.includes("大") || h.includes("대") || h === "사라핀별" || cHead.includes("대")) {
+      return false;
     }
-  // [무전해] 전용 필터: (大) 제외 및 S/W, P/W 노출
+  }
+
+  // 2. 무전해 전용 필터: (大) 제외 및 와셔(S/W, P/W) 허용
   if (cMat.includes("무전해")) {
-    if (String(head || "").includes("大") || String(head || "").includes("대")) {
+    const h = String(head || "");
+    if (h.includes("大") || h.includes("대") || cHead.includes("대")) {
       return false;
     }
     const allowedMoo = [
@@ -527,6 +530,7 @@ function isHeadAllowed(mat, head) {
     ];
     return allowedMoo.includes(clean(head));
   }
+
   // 1. 스텐 (304) -> "스텐", "스텐304" 모두 인식
   if (cMat === "스텐" || cMat === "스텐304") {
     const allowed = [
