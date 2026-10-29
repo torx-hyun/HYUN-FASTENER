@@ -524,7 +524,7 @@ function isHeadAllowed(mat, head) {
     return allowed.some(item => clean(item) === cHead);
   }
 
-  // 2. 스텐 (316L) -> "스텐316l"로 완벽 매칭
+// 2. 스텐 (316L) -> "스텐316l"로 완벽 매칭
   if (cMat === "스텐316l") {
     const allowed = [
       "유두렌지", "유두렌지316l",
