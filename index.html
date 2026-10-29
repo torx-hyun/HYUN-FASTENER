@@ -783,11 +783,21 @@ function isHeadAllowed(mat, head) {
       }
     }
 
-    if (isInch) {
-      fullName = `${m} ${h} (${dia}*${len})`;
-    } else {
-      fullName = `${m} ${h} (${dia}*${len})`;
-    }
+  const isWasher = (h === "S/W" || h === "P/W");
+
+  if (isWasher) {
+    // 와셔는 길이 없이 (직경)만 조합 -> 예: "무전해 S/W (2)"
+    fullName = `${m} ${h} (${dia})`;
+  } else if (isInch) {
+    fullName = `${m} ${h} (${dia}*${len})`;
+  } else {
+    fullName = `${m} ${h} (${dia}*${len})`;
+  }
+  } else if (isInch) {
+    fullName = `${m} ${h} (${dia}*${len})`;
+  } else {
+    fullName = `${m} ${h} (${dia}*${len})`;
+  }
       document.getElementById('previewSpecText').innerText = fullName;
 
       const badge = document.getElementById('stockBadge');
