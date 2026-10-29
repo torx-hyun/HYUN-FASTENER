@@ -711,12 +711,22 @@ function isHeadAllowed(mat, head) {
       const len = document.getElementById('lenSelect').value;
       const isInch = selectedHead.includes("INCH");
 
-      let fullName = "";
-      if (isInch) {
-        fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
-      } else {
-        fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
+    let m = selectedMat;
+    let h = selectedHead;
+
+    // 스텐(316L)일 경우 시트 품명 규칙에 맞춰 "스텐 [헤드](316L)" 형태로 변환
+    if (m.includes("316")) {
+      m = "스텐";
+      if (!h.includes("316")) {
+        h = `${h}(316L)`;
       }
+    }
+
+    if (isInch) {
+      fullName = `${m} ${h} (${dia}*${len})`;
+    } else {
+      fullName = `${m} ${h} (${dia}*${len})`;
+    }
       document.getElementById('previewSpecText').innerText = fullName;
 
       const badge = document.getElementById('stockBadge');
