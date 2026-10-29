@@ -680,12 +680,12 @@ function isHeadAllowed(mat, head) {
         diaSelect.appendChild(opt);
       });
       const opt = document.createElement('option');
-      opt.value = "";
-      opt.innerText = "-";
-      lenSelect.appendChild(opt);
-      return;
-    } else {
-      lenSelect.disabled = false;
+    opt.value = "";
+    opt.innerText = "-";
+    lenSelect.appendChild(opt);
+    onSpecChange();
+    return;
+  } else {
     }
       if (isInch) {
         // 인치 규격 분기: 스텐 사라만 #2부터, 나머지는 #4부터
