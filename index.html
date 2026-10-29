@@ -645,10 +645,11 @@ function isHeadAllowed(mat, head) {
       ? "px-2.5 py-1.5 rounded-md text-xs font-bold bg-blue-600 text-white shadow-sm"
       : "px-2.5 py-1.5 rounded-md text-xs font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-100";
     btn.onclick = () => {
-      selectedHead = head;
-      renderHeadOptions();
-      updateSpecDropdowns();
-    };
+  selectedHead = head;
+  renderHeadOptions();
+  updateSpecDropdowns();
+  onSpecChange();
+};
 
     btn.innerText = head;
     container.appendChild(btn);
