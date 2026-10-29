@@ -506,11 +506,18 @@
 
 // 재질별 허용 헤드 판단 (화면 버튼 텍스트와 100% 일치하도록 보강)
 function isHeadAllowed(mat, head) {
-  // 공백, 특수기호(-, _, /, 괄호, 大)를 모두 제거하고 소문자로 통일
+ if (mat.includes("착색")) {
+    const allowedChaksaek = [
+      "낮은머리", "유두렌지", "유두렌지(INCH)", "유두별렌지", 
+      "마루렌지(INCH)", "마루별", "마루핀별", "사라렌지(INCH)", "사라별"
+    ];
+    return allowedChaksaek.includes(head);
+  }
+
   const clean = (str) => String(str || "").replace(/[\s\-_/()大]/g, "").toLowerCase();
   const cMat = clean(mat);
   const cHead = clean(head);
-if (cMat.includes("착색") && (cHead === "sw" || cHead === "pw")) return false;
+  
   // 1. SCM-NI는 '大', '대', '사라핀별' 무조건 차단
   if (cMat === "scmni" || cMat === "scm-ni") {
     const h = String(head || "");
