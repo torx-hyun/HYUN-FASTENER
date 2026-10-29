@@ -767,18 +767,20 @@ function isHeadAllowed(mat, head) {
 
     // 규격 변경 시 시트 검색 및 실시간 재고 확인
     let stockTimer = null;
-    function onSpecChange() {
-  const diaRaw = document.getElementById('diaSelect').value;
-  const len = document.getElementById('lenSelect').value;
+  function onSpecChange() {
+  const diaEl = document.getElementById('diaSelect');
+  const lenEl = document.getElementById('lenSelect');
+  const diaRaw = diaEl ? diaEl.value : '';
+  const len = lenEl ? lenEl.value : '';
   
-  // 직경 값에서 'M' 또는 공백 제거 (예: "M2" -> "2", "2" -> "2")
-  const dia = diaRaw ? diaRaw.replace(/^M/i, '').trim() : '';
+  // 직경 값에서 'M' 또는 공백 제거 (예: "M2" -> "2")
+  const dia = diaRaw ? String(diaRaw).replace(/^M/i, '').trim() : '';
 
-  let m = selectedMat;
-  let h = selectedHead;
+  let m = selectedMat || '';
+  let h = selectedHead || '';
   const isInch = h.includes("INCH");
 
-  // 스텐(316L)일 경우 시트 품명 규칙에 맞춰 "스텐 [헤드](316L)" 형태로 변환
+  // 스텐(316L)일 경우 시트 품명 규칙 반영
   if (m.includes("316")) {
     m = "스텐";
     if (!h.includes("316")) {
@@ -790,7 +792,7 @@ function isHeadAllowed(mat, head) {
   let fullName = "";
 
   if (isWasher) {
-    // 와셔는 길이 없이 (직경)만 조합 -> 예: "무전해 S/W (2)"
+    // 와셔류: 길이 없이 (직경)만 조합 -> 예: "무전해 S/W (2)"
     fullName = `${m} ${h} (${dia})`;
   } else if (isInch) {
     fullName = `${m} ${h} (${dia}*${len})`;
@@ -798,8 +800,7 @@ function isHeadAllowed(mat, head) {
     fullName = `${m} ${h} (${dia}*${len})`;
   }
 
-      document.getElementById('previewSpecText').innerText = fullName;
-
+  document.getElementById('previewSpecText').innerText = fullName;
       const badge = document.getElementById('stockBadge');
       const addBtn = document.getElementById('addCartBtn');
 
