@@ -507,7 +507,12 @@ function isHeadAllowed(mat, head) {
   const clean = (str) => String(str || "").replace(/[\s\-_/()大]/g, "").toLowerCase();
   const cMat = clean(mat);
   const cHead = clean(head);
-
+// SCM-NI는 '大' 및 '사라핀별' 버튼 무조건 차단
+  if (cMat === "scmni" || cMat === "scm-ni") {
+    if (String(head || "").includes("大") || head === "사라핀별") {
+      return false;
+    }
+  }
   // 1. 스텐 (304) -> "스텐", "스텐304" 모두 인식
   if (cMat === "스텐" || cMat === "스텐304") {
     const allowed = [
