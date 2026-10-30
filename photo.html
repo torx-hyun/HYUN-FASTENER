@@ -22,7 +22,7 @@
   <div class="card">
     <h2>📷 견적 및 발주 사진 접수</h2>
     <label>거래처명 (상호명) *</label>
-    <input type="text" id="clientName" placeholder="예: 상호명" required>
+    <input type="text" id="clientName" placeholder="상호명" required>
     
     <label>사진 첨부 (카메라 촬영 / 갤러리) *</label>
     <input type="file" id="photoFile" accept="image/*" capture="environment" required>
@@ -34,8 +34,7 @@
   </div>
 
   <script>
-    // 현재 사용 중인 Apps Script 배포 URL (index.html에 있는 것과 동일)
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pC0BbJl-iwzj_J8tpOT8fBCmSbx7WM8gBIG6qWJT0fvHJ2fjMtbxF6UV7ll0FuJOjA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pC0BbJl-iwzj_J8tpOT8fBCmSbx7WM8gBIG6qWJT0fvHJ2fjMtbxF6UV71l0FuJOjA/exec";
 
     function submitPhoto() {
       const clientName = document.getElementById('clientName').value.trim();
@@ -67,23 +66,21 @@
           memo: memo
         };
 
+        // CORS 오류 방지를 위해 text/plain 스트림으로 전송
         fetch(SCRIPT_URL, {
           method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
           body: JSON.stringify(payload)
         })
-        .then(res => res.json())
-        .then(data => {
-          if (data.result === 'success') {
-            alert('사진 접수가 정상적으로 완료되었습니다!');
-            location.reload();
-          } else {
-            alert('전송 실패: ' + (data.message || '다시 시도해주세요.'));
-            submitBtn.disabled = false;
-            submitBtn.innerText = "사진 접수하기";
-          }
+        .then(() => {
+          alert('사진 접수가 정상적으로 완료되었습니다!');
+          location.reload();
         })
         .catch(err => {
-          alert('전송 중 오류가 발생했습니다.');
+          alert('전송 중 오류가 발생했습니다: ' + err);
           submitBtn.disabled = false;
           submitBtn.innerText = "사진 접수하기";
         });
