@@ -33,29 +33,29 @@
     <button id="submitBtn" onclick="submitPhoto()">사진 접수하기</button>
   </div>
 
-  <script>
+<script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pC0BbJl-iwzj_J8tpOT8fBCmSbx7WM8gBIG6qWJT0fvHJ2fjMtbxF6UV71l0FuJOjA/exec";
 
-    // 1. 저장된 상호명 자동 로드 (여러 저장 키 모두 대응)
-    window.addEventListener('DOMContentLoaded', () => {
-      const saved = localStorage.getItem('hf_client_name') || 
-                    localStorage.getItem('clientName') || 
-                    localStorage.getItem('companyName');
+    // 저장된 상호명 자동 입력
+    window.addEventListener('DOMContentLoaded', function() {
+      var saved = localStorage.getItem('hf_client_name') || 
+                  localStorage.getItem('clientName') || 
+                  localStorage.getItem('companyName');
       if (saved) {
-        const nameInput = document.getElementById('clientName');
+        var nameInput = document.getElementById('clientName');
         if (nameInput) nameInput.value = saved;
       }
     });
 
-    // 2. 사진 접수 실행 함수
-    function submitPhoto() {
-      const nameInput = document.getElementById('clientName');
-      const fileInput = document.getElementById('photoFile');
-      const memoInput = document.getElementById('memo');
-      const submitBtn = document.getElementById('submitBtn');
+    // 사진 접수 실행 함수 (window 전역에 직접 등록하여 not defined 원천 차단)
+    window.submitPhoto = function() {
+      var nameInput = document.getElementById('clientName');
+      var fileInput = document.getElementById('photoFile');
+      var memoInput = document.getElementById('memo');
+      var submitBtn = document.getElementById('submitBtn');
 
-      const clientName = nameInput ? nameInput.value.trim() : "";
-      const memo = memoInput ? memoInput.value.trim() : "";
+      var clientName = nameInput ? nameInput.value.trim() : "";
+      var memo = memoInput ? memoInput.value.trim() : "";
 
       if (!clientName) {
         alert('거래처명을 입력해주세요.');
@@ -63,7 +63,7 @@
         return;
       }
 
-      // 다음에 접속할 때 자동 입력되도록 저장
+      // 상호명 저장
       localStorage.setItem('hf_client_name', clientName);
       localStorage.setItem('clientName', clientName);
 
@@ -72,78 +72,43 @@
         return;
       }
 
-      const file = fileInput.files[0];
+      var file = fileInput.files[0];
 
-      // 버튼 중복 클릭 방지
+      // 버튼 상태 변경
       submitBtn.disabled = true;
-      submitBtn.innerText = "사진 압축 및 전송 중...";
+      submitBtn.innerText = "사진 전송 중...";
 
-      const reader = new FileReader();
+      // 파일 읽기 및 즉시 전송
+      var reader = new FileReader();
+
       reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          // 모바일 용량 초과 방지를 위한 최대 1280px 리사이징
-          const maxDim = 1280;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDim) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            }
-          } else {
-            if (height > maxDim) {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          // 70% 품질 JPEG 압축
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-          const payload = {
-            action: "photoUpload",
-            clientName: clientName,
-            customerName: clientName,
-            fileName: file.name.replace(/\.[^/.]+$/, "") + ".jpg",
-            fileData: compressedBase64,
-            fileBase64: compressedBase64,
-            memo: memo
-          };
-
-          fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: {
-              'Content-Type': 'text/plain;charset=utf-8'
-            },
-            body: JSON.stringify(payload)
-          })
-          .then(function() {
-            alert('사진 접수가 정상적으로 완료되었습니다!');
-            location.reload();
-          })
-          .catch(function(err) {
-            alert('전송 중 오류가 발생했습니다: ' + err);
-            submitBtn.disabled = false;
-            submitBtn.innerText = "사진 접수하기";
-          });
+        var payload = {
+          action: "photoUpload",
+          clientName: clientName,
+          customerName: clientName,
+          fileName: file.name,
+          fileData: e.target.result,
+          fileBase64: e.target.result,
+          memo: memo
         };
 
-        img.onerror = function() {
-          alert('이미지 처리 중 오류가 발생했습니다.');
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(function() {
+          alert('사진 접수가 정상적으로 완료되었습니다!');
+          location.reload();
+        })
+        .catch(function(err) {
+          alert('전송 중 오류가 발생했습니다: ' + err);
           submitBtn.disabled = false;
           submitBtn.innerText = "사진 접수하기";
-        };
-
-        img.src = e.target.result;
+        });
       };
 
       reader.onerror = function() {
@@ -153,7 +118,7 @@
       };
 
       reader.readAsDataURL(file);
-    }
+    };
   </script>
 </body>
 </html>
