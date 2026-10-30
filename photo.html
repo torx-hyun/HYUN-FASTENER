@@ -59,44 +59,72 @@
         return;
       }
 
-      const file = fileInput.files[0];
-      const reader = new FileReader();
+     submitBtn.disabled = true;
+    submitBtn.innerText = "사진 압축 및 전송 중...";
 
-      submitBtn.disabled = true;
-      submitBtn.innerText = "사진 전송 중...";
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        // 최대 가로/세로 1280px로 리사이징
+        const maxDim = 1280;
+        let width = img.width;
+        let height = img.height;
 
-     reader.onload = function(e) {
-      const payload = {
-        action: "photoUpload",
-        clientName: clientName,
-        customerName: clientName,
-        fileName: file.name,
-        fileData: e.target.result,
-        fileBase64: e.target.result,
-        memo: memo
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // 70% 품질 JPEG로 압축 (용량을 수십 KB ~ 수백 KB로 축소)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+        const payload = {
+          action: "photoUpload",
+          clientName: clientName,
+          customerName: clientName,
+          fileName: file.name.replace(/\.[^/.]+$/, "") + ".jpg",
+          fileData: compressedBase64,
+          fileBase64: compressedBase64,
+          memo: memo
+        };
+
+        fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8'
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(function() {
+          alert('사진 접수가 정상적으로 완료되었습니다!');
+          location.reload();
+        })
+        .catch(function(err) {
+          alert('전송 중 오류가 발생했습니다: ' + err);
+          submitBtn.disabled = false;
+          submitBtn.innerText = "사진 접수하기";
+        });
       };
 
-      fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(function() {
-        alert('사진 접수가 정상적으로 완료되었습니다!');
-        location.reload();
-      })
-      .catch(function(err) {
-        alert('전송 중 오류가 발생했습니다: ' + err);
-        submitBtn.disabled = false;
-        submitBtn.innerText = "사진 접수하기";
-      });
+      // 압축용 이미지 로드
+      img.src = e.target.result;
     };
 
+    // 원본 파일 읽기 시작
     reader.readAsDataURL(file);
   }
-  </script>
-</body>
-</html>
