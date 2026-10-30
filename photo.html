@@ -35,7 +35,13 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pC0BbJl-iwzj_J8tpOT8fBCmSbx7WM8gBIG6qWJT0fvHJ2fjMtbxF6UV71l0FuJOjA/exec";
-
+// 이전에 저장된 상호명이 있으면 자동으로 입력
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedName = localStorage.getItem('hf_client_name') || localStorage.getItem('clientName') || localStorage.getItem('companyName');
+      if (savedName) {
+        document.getElementById('clientName').value = savedName;
+      }
+    });
     function submitPhoto() {
       const clientName = document.getElementById('clientName').value.trim();
       const fileInput = document.getElementById('photoFile');
@@ -46,6 +52,8 @@
         alert('거래처명을 입력해주세요.');
         return;
       }
+      // 입력한 상호명 저장
+      localStorage.setItem('hf_client_name', clientName);
       if (fileInput.files.length === 0) {
         alert('첨부할 사진을 선택해주세요.');
         return;
