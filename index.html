@@ -954,6 +954,10 @@ if (data.result === "found" && data.packQty) {
         alert("거래처 인증이 필요합니다.");
         return;
       }
+      // 견적 및 사진 접수 페이지 자동 입력을 위해 상호명 저장
+    if (currentCompany && currentCompany.name) {
+      localStorage.setItem('hf_client_name', currentCompany.name);
+    }
       if (cart.length === 0) {
         alert("발주할 품목을 먼저 담아주세요.");
         return;
