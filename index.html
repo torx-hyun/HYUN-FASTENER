@@ -643,16 +643,19 @@
 
 // 재질별 허용 헤드 판단 (화면 버튼 텍스트와 100% 일치하도록 보강)
 function isHeadAllowed(mat, head) {
+  // 1. 천연색: 취급 헤드 목록 (렌지류 + 기존 HEX/와샤류 포함)
   if (mat.includes("천연색")) {
     const allowedChunyeon = [
-      "HEX+S/W", "HEX+SP/W", "HEX+SP/W(대)", "P+S/W", "P+SP/W"
+      "유두렌지", "유두렌지SP/W", "유두렌지S/W", "사라렌지", "마루렌지", "낮은머리", "낮은머리렌지",
+      "HEX+S/W", "HEX+SP/W", "HEX+SP/W(대)", "P+S/W", "P+SP/W", "S/W", "P/W"
     ];
     return allowedChunyeon.includes(head);
   }
 
+  // 2. 착색 (SCM-착색)
   if (mat.includes("착색")) {
     const allowedChaksaek = [
-      "낮은머리", "유두렌지", "유두렌지(INCH)", "유두별렌지", 
+      "낮은머리", "유두렌지", "유두렌지(INCH)", "유두별렌지",
       "마루렌지(INCH)", "마루별", "마루핀별", "사라렌지(INCH)", "사라별"
     ];
     return allowedChaksaek.includes(head);
@@ -661,8 +664,8 @@ function isHeadAllowed(mat, head) {
   const clean = (str) => String(str || "").replace(/[\s\-_/()大]/g, "").toLowerCase();
   const cMat = clean(mat);
   const cHead = clean(head);
-  
-  // 1. SCM-NI는 '大', '대', '사라핀별' 무조건 차단
+
+  // 3. SCM-NI: '大', '대', '사라핀별' 제외 (12.9 및 좌산 정상 허용)
   if (cMat === "scmni" || cMat === "scm-ni") {
     const h = String(head || "");
     if (h.includes("大") || h.includes("대") || h === "사라핀별" || cHead.includes("대")) {
@@ -670,12 +673,13 @@ function isHeadAllowed(mat, head) {
     }
   }
 
-  // 2. 무전해 전용 필터: (大) 제외 및 와셔(S/W, P/W) 허용
+  // 4. 무전해 (SCM-무전해): '大', '대' 제외 (12.9 품목 정상 허용)
   if (cMat.includes("무전해")) {
     const h = String(head || "");
     if (h.includes("大") || h.includes("대") || cHead.includes("대")) {
       return false;
     }
+  }
     const allowedMoo = [
       "유두렌지", "유두렌지spw", "유두렌지spw129", "유두렌지sw", "유두렌지sw129",
       "사라렌지", "마루렌지",
