@@ -412,15 +412,20 @@
         return;
       }
 
-      // 6. [+ M/S] 탭: +M/S, +SP/W 등 십자/조립 볼트류
+      // 6. [+ M/S] 탭: +M/S, +SP/W 등 십자/조립 볼트류 및 HEX+ 조립류 포함
       if (tabKey === 'PLUS' || tabKey === '+') {
-        const isPlus = text.includes('+M/S') || text.includes('+S/W') || text.includes('+SP/W') || text.includes('+-');
+        const isPlus = text.includes('+M/S') || text.includes('+S/W') || text.includes('+SP/W') || text.includes('+-') || text.includes('HEX+');
         btn.style.display = isPlus ? '' : 'none';
         return;
       }
 
-      // 7. [와샤/기타] 탭: 와샤류 및 HEX류
+      // 7. [와샤/기타] 탭: 순수 와샤(S/W, P/W) 및 단독 HEX류 (HEX+ 조립류는 제외)
       if (tabKey === 'ETC' || tabKey === '기타') {
+        const isHexPlus = text.includes('HEX+');
+        const isEtc = (text.startsWith('S/W') || text.startsWith('P/W') || text === 'SW' || text === 'PW' || (text.includes('HEX') && !isHexPlus));
+        btn.style.display = (!isHexPlus && isEtc) ? '' : 'none';
+        return;
+      }
         const isEtc = text.startsWith('S/W') || text.startsWith('P/W') || text.includes('HEX');
         btn.style.display = isEtc ? '' : 'none';
         return;
