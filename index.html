@@ -673,16 +673,11 @@ function isHeadAllowed(mat, head) {
     }
   }
 
-  // 4. 무전해 (SCM-무전해): '大', '대' 제외 (12.9 품목 정상 허용)
+ // 4. 무전해 (SCM-무전해): '大', '대' 제외 및 12.9 품목 허용
   if (cMat.includes("무전해")) {
-    const h = String(head || "");
-    if (h.includes("大") || h.includes("대") || cHead.includes("대")) {
-      return false;
-    }
-  }
     const allowedMoo = [
       "유두렌지", "유두렌지spw", "유두렌지spw129", "유두렌지sw", "유두렌지sw129",
-      "사라렌지", "마루렌지",
+      "사라렌지", "마루렌지", "낮은머리", "낮은머리렌지",
       "sw", "pw"
     ];
     return allowedMoo.includes(clean(head));
