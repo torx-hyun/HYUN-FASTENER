@@ -371,7 +371,7 @@
     ]
   };
 
- // [수정] '렌지'/'렌치' 완벽 매칭 필터 함수
+// [수정] 볼트 헤드 필터링 완벽 함수
   function applyHeadTabFilter() {
     const buttons = document.querySelectorAll('#headContainer button');
     const tabKey = (currentActiveHeadTab || 'ALL').toUpperCase();
@@ -392,11 +392,51 @@
         return;
       }
 
-      // 3. 다른 탭에서는 INCH 제품 무조건 제외 (렌지에 인치가 섞이지 않음)
+      // 3. 다른 모든 탭에서는 INCH 제품 무조건 제외 (인치가 렌지나 다른 탭에 절대 안 섞임)
       if (text.includes('INCH') || text.includes('인치')) {
         btn.style.display = 'none';
         return;
       }
+
+      // 4. [렌치/렌지] 탭: 별(TORX) 제외, '렌지'/'렌치'/'낮은머리' 및 12.9/좌산 품목 전체 포함
+      if (tabKey === 'WRENCH' || tabKey === '렌치' || tabKey === '렌지') {
+        const isTorx = text.includes('별') || text.includes('TORX');
+        const isWrench = text.includes('렌지') || text.includes('렌치') || text.includes('낮은머리');
+        btn.style.display = (!isTorx && isWrench) ? '' : 'none';
+        return;
+      }
+
+      // 5. [TORX(별)] 탭: 이름에 별 또는 TORX 포함 품목
+      if (tabKey === 'TORX' || tabKey === '별') {
+        btn.style.display = (text.includes('별') || text.includes('TORX')) ? '' : 'none';
+        return;
+      }
+
+      // 6. [+ M/S] 탭: +M/S, +SP/W 등 십자/조립 볼트류
+      if (tabKey === 'PLUS' || tabKey === '+') {
+        const isPlus = text.includes('+M/S') || text.includes('+S/W') || text.includes('+SP/W') || text.includes('+-');
+        btn.style.display = isPlus ? '' : 'none';
+        return;
+      }
+
+      // 7. [와샤/기타] 탭: 와샤류 및 HEX류
+      if (tabKey === 'ETC' || tabKey === '기타') {
+        const isEtc = text.startsWith('S/W') || text.startsWith('P/W') || text.includes('HEX');
+        btn.style.display = isEtc ? '' : 'none';
+        return;
+      }
+
+      btn.style.display = 'none';
+    });
+  }
+
+  // [수정] 탭 클릭 시 상태 저장 및 필터 실행
+  function switchHeadTab(tabKey, tabBtn) {
+    currentActiveHeadTab = (tabKey || 'ALL').toUpperCase();
+    document.querySelectorAll('#headTabGroup .head-tab').forEach(b => b.classList.remove('active'));
+    if (tabBtn) tabBtn.classList.add('active');
+    applyHeadTabFilter();
+  }
 
       // 4. [렌치/렌지] 탭: 별(TORX) 제외, '렌지'/'렌치'/'낮은머리' 포함 품목 모두 표시 (유두렌지, 사라렌지, 좌산 등)
       if (tabKey === 'WRENCH' || tabKey === '렌치' || tabKey === '렌지') {
