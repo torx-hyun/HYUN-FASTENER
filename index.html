@@ -793,14 +793,14 @@ function isHeadAllowed(mat, head) {
       return;
     }
 
-    applyHeadTabFilter();
-  }
-    // 헤드 형태에 따라 직경과 길이 선택창 업데이트
-    function updateSpecDropdowns() {
-      const diaSelect = document.getElementById('diaSelect');
-      const lenSelect = document.getElementById('lenSelect');
-      const isInch = selectedHead.includes("INCH");
+   applyHeadTabFilter();
+}
 
+// 헤드 형태에 따라 직경과 길이 선택창 업데이트
+function updateSpecDropdowns() {
+  const diaSelect = document.getElementById('diaSelect');
+  const lenSelect = document.getElementById('lenSelect');
+  const isInch = selectedHead.includes("INCH");
       diaSelect.innerHTML = "";
       lenSelect.innerHTML = "";
 // 와셔(S/W, P/W) 전용 분기: 호칭경만 2~12로 채우고 길이는 '-' 처리
