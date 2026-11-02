@@ -452,10 +452,10 @@ btn.style.display = 'none';
   let cart = [];
 
   window.onload = function() {
-    loadSavedCompany();
-    renderHeadOptions();
-    updatesSpecDropdowns();
-  };
+  loadSavedCompany();
+  renderHeadOptions();
+  updateSpecDropdowns();
+};
     function loadSavedCompany() {
       const saved = localStorage.getItem("hf_auth_company");
       if (saved) {
