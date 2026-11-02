@@ -371,29 +371,36 @@
     ]
   };
 
-  // [수정] 필터링 함수 (공백 무시 정확 매칭)
+ // [수정] 대소문자 무시 및 완벽 매칭 필터 함수
   function applyHeadTabFilter() {
     const buttons = document.querySelectorAll('#headContainer button');
-    buttons.forEach(btn => {
-      const btnText = (btn.textContent || btn.innerText || '').replace(/\s+/g, '');
+    const tabKey = (currentActiveHeadTab || 'ALL').toUpperCase();
 
-      if (currentActiveHeadTab === 'ALL') {
+    buttons.forEach(btn => {
+      if (tabKey === 'ALL') {
         btn.style.display = '';
         return;
       }
 
-      const targetList = headCategoryMap[currentActiveHeadTab] || [];
-      const isMatch = targetList.some(item => item.replace(/\s+/g, '') === btnText);
+      // 버튼 글자: 공백 제거 및 대문자 변환
+      const btnText = (btn.textContent || btn.innerText || '').replace(/\s+/g, '').toUpperCase();
+      const targetList = headCategoryMap[tabKey] || [];
+
+      // 등록된 품목명과 완벽히 일치하는지 비교
+      const isMatch = targetList.some(item => {
+        const cleanItem = item.replace(/\s+/g, '').toUpperCase();
+        return btnText === cleanItem;
+      });
 
       btn.style.display = isMatch ? '' : 'none';
     });
   }
 
-  // [수정] 탭 전환 함수
+  // [수정] 탭 클릭 시 대문자로 변환하여 저장
   function switchHeadTab(tabKey, tabBtn) {
-    currentActiveHeadTab = tabKey;
+    currentActiveHeadTab = (tabKey || 'ALL').toUpperCase();
     document.querySelectorAll('#headTabGroup .head-tab').forEach(b => b.classList.remove('active'));
-    tabBtn.classList.add('active');
+    if (tabBtn) tabBtn.classList.add('active');
     applyHeadTabFilter();
   }
   const metricDias = ["1.6", "2", "2.3", "2.5", "2.6", "3", "4", "5", "6", "8", "10"];
