@@ -773,16 +773,15 @@ function isHeadAllowed(mat, head) {
     if (!firstValidHead) firstValidHead = head;
     const isSelected = (head === selectedHead);
     btn.className = isSelected
-      btn.className = isSelected
-  ? "px-4 py-3 rounded-xl text-sm sm:text-base font-bold bg-blue-600 text-white shadow-md flex-1 min-h-[44px]"
-  : "px-4 py-3 rounded-xl text-sm sm:text-base font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 flex-1 min-h-[44px]";
-    btn.onclick = () => {
-  selectedHead = head;
-  renderHeadOptions();
-  updateSpecDropdowns();
-  onSpecChange();
-};
+      ? "px-4 py-3 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md flex-1 min-h-[44px]"
+      : "px-4 py-3 rounded-xl text-sm font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 flex-1 min-h-[44px]";
 
+    btn.onclick = () => {
+      selectedHead = head;
+      renderHeadOptions();
+      updateSpecDropdowns();
+      onSpecChange();
+    };
     btn.innerText = head;
     container.appendChild(btn);
   });
