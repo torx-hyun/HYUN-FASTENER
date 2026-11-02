@@ -678,16 +678,6 @@ function isHeadAllowed(mat, head) {
     }
   }
 
- // 4. 무전해 (SCM-무전해): '大', '대' 제외 및 12.9 품목 허용
-  if (cMat.includes("무전해")) {
-    const allowedMoo = [
-      "유두렌지", "유두렌지spw", "유두렌지spw129", "유두렌지sw", "유두렌지sw129",
-      "사라렌지", "마루렌지", "낮은머리", "낮은머리렌지",
-      "sw", "pw"
-    ];
-    return allowedMoo.includes(clean(head));
-  }
-
   // 1. 스텐 (304) -> "스텐", "스텐304" 모두 인식
   if (cMat === "스텐" || cMat === "스텐304") {
     const allowed = [
