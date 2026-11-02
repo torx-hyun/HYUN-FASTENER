@@ -371,7 +371,7 @@
     ]
   };
 
- // [수정] 대소문자 무시 및 완벽 매칭 필터 함수
+ // [수정] 볼트 명칭 규칙 기반 완벽 필터 함수
   function applyHeadTabFilter() {
     const buttons = document.querySelectorAll('#headContainer button');
     const tabKey = (currentActiveHeadTab || 'ALL').toUpperCase();
@@ -382,20 +382,59 @@
         return;
       }
 
-      // 버튼 글자: 공백 제거 및 대문자 변환
-      const btnText = (btn.textContent || btn.innerText || '').replace(/\s+/g, '').toUpperCase();
-      const targetList = headCategoryMap[tabKey] || [];
+      const text = (btn.textContent || btn.innerText || '').replace(/\s+/g, '').toUpperCase();
 
-      // 등록된 품목명과 완벽히 일치하는지 비교
-      const isMatch = targetList.some(item => {
-        const cleanItem = item.replace(/\s+/g, '').toUpperCase();
-        return btnText === cleanItem;
-      });
+      // 1. INCH 탭: 이름에 INCH가 포함된 것만 표시
+      if (tabKey === 'INCH') {
+        btn.style.display = text.includes('INCH') ? '' : 'none';
+        return;
+      }
 
-      btn.style.display = isMatch ? '' : 'none';
+      // 2. 다른 탭에서는 INCH 제품은 무조건 숨김
+      if (text.includes('INCH')) {
+        btn.style.display = 'none';
+        return;
+      }
+
+      // 3. 렌치 탭: 별(TORX)이 아니면서 '렌치'나 '낮은머리'가 들어간 모든 품목 (좌산 포함)
+      if (tabKey === 'WRENCH' || tabKey === '렌치') {
+        const isTorx = text.includes('별') || text.includes('TORX');
+        const isWrench = text.includes('렌치') || text.includes('낮은머리');
+        btn.style.display = (!isTorx && isWrench) ? '' : 'none';
+        return;
+      }
+
+      // 4. TORX 탭: 별 또는 TORX 포함 품목
+      if (tabKey === 'TORX' || tabKey === '별') {
+        btn.style.display = (text.includes('별') || text.includes('TORX')) ? '' : 'none';
+        return;
+      }
+
+      // 5. + M/S 탭: 십자/조립 볼트류
+      if (tabKey === 'PLUS' || tabKey === '+') {
+        const isPlus = text.includes('+M/S') || text.includes('+S/W') || text.includes('+SP/W') || text.includes('+-');
+        btn.style.display = isPlus ? '' : 'none';
+        return;
+      }
+
+      // 6. 와샤/기타 탭
+      if (tabKey === 'ETC' || tabKey === '기타') {
+        const isEtc = text.startsWith('S/W') || text.startsWith('P/W') || text.includes('HEX');
+        btn.style.display = isEtc ? '' : 'none';
+        return;
+      }
+
+      btn.style.display = 'none';
     });
   }
 
+  // [수정] 탭 클릭 시 어떤 형태(한글/영문)로 넘어와도 처리
+  function switchHeadTab(tabKey, tabBtn) {
+    currentActiveHeadTab = tabKey || 'ALL';
+    document.querySelectorAll('#headTabGroup .head-tab').forEach(b => b.classList.remove('active'));
+    if (tabBtn) tabBtn.classList.add('active');
+    applyHeadTabFilter();
+  }
   // [수정] 탭 클릭 시 대문자로 변환하여 저장
   function switchHeadTab(tabKey, tabBtn) {
     currentActiveHeadTab = (tabKey || 'ALL').toUpperCase();
