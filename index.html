@@ -433,13 +433,7 @@
     document.querySelectorAll('#headTabGroup .head-tab').forEach(b => b.classList.remove('active'));
     if (tabBtn) tabBtn.classList.add('active');
     applyHeadTabFilter();
-  }
-    document.querySelectorAll('#headTabGroup .head-tab').forEach(b => b.classList.remove('active'));
-    if (tabBtn) tabBtn.classList.add('active');
-    applyHeadTabFilter();
-  }
-
-     
+ 
   // [수정] 탭 클릭 시 대문자로 변환하여 저장
   function switchHeadTab(tabKey, tabBtn) {
     currentActiveHeadTab = (tabKey || 'ALL').toUpperCase();
