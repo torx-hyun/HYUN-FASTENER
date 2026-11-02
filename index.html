@@ -758,14 +758,14 @@ function isHeadAllowed(mat, head) {
     return false;
   }
 
-  function renderHeadOptions() {
+ function renderHeadOptions() {
     const container = document.getElementById('headContainer');
     container.innerHTML = "";
     let firstValidHead = null;
 
     allHeads.forEach(head => {
       const allowed = isHeadAllowed(selectedMat, head);
-      if (!allowed) return; // 없는 품목은 버튼을 만들지 않고 아예 숨김
+      if (!allowed) return;
 
       const btn = document.createElement('button');
       btn.type = "button";
@@ -793,17 +793,19 @@ function isHeadAllowed(mat, head) {
       return;
     }
 
-   applyHeadTabFilter();
-}
+    applyHeadTabFilter();
+  }
 
-// 헤드 형태에 따라 직경과 길이 선택창 업데이트
-function updateSpecDropdowns() {
-  const diaSelect = document.getElementById('diaSelect');
-  const lenSelect = document.getElementById('lenSelect');
-  const isInch = selectedHead.includes("INCH");
-      diaSelect.innerHTML = "";
-      lenSelect.innerHTML = "";
-// 와셔(S/W, P/W) 전용 분기: 호칭경만 2~12로 채우고 길이는 '-' 처리
+  // 헤드 형태에 따라 직경과 길이 선택창 업데이트
+  function updateSpecDropdowns() {
+    const diaSelect = document.getElementById('diaSelect');
+    const lenSelect = document.getElementById('lenSelect');
+    const isInch = selectedHead.includes("INCH");
+
+    diaSelect.innerHTML = "";
+    lenSelect.innerHTML = "";
+
+    // 와셔(S/W, P/W) 전용 분기: 호칭경만 2~12로 채우고 길이는 '-' 처리
     const isWasher = (selectedHead === "S/W" || selectedHead === "P/W");
     if (isWasher) {
       lenSelect.disabled = true;
@@ -815,63 +817,65 @@ function updateSpecDropdowns() {
         diaSelect.appendChild(opt);
       });
       const opt = document.createElement('option');
-    opt.value = "";
-    opt.innerText = "-";
-    lenSelect.appendChild(opt);
-    onSpecChange();
-   return;
+      opt.value = "";
+      opt.innerText = "-";
+      lenSelect.appendChild(opt);
+      onSpecChange();
+      return;
     }
 
     if (isInch) {
-        // 인치 규격 분기: 스텐 사라만 #2부터, 나머지는 #4부터
-        const dias = (selectedMat === "스텐" && selectedHead === "사라렌지(INCH)") 
-          ? inchDiasAll 
-          : inchDiasFrom4;
+      // 인치 규격 분기: 스텐 사라만 #2부터, 나머지는 #4부터
+      const dias = (selectedMat === "스텐" && selectedHead === "사라렌지(INCH)")
+        ? inchDiasAll
+        : inchDiasFrom4;
 
-        dias.forEach(d => {
-          const opt = document.createElement('option');
-          opt.value = d;
-          opt.innerText = d;
-          diaSelect.appendChild(opt);
-        });
+      dias.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.innerText = d;
+        diaSelect.appendChild(opt);
+      });
 
-        inchLens.forEach(l => {
-          const opt = document.createElement('option');
-          opt.value = l;
-          opt.innerText = l;
-          lenSelect.appendChild(opt);
-        });
-      } else {
-        // 미터법 일반 규격
-        metricDias.forEach(d => {
-          const opt = document.createElement('option');
-          opt.value = d;
-          opt.innerText = "M" + d;
-          if (d === "3") opt.selected = true;
-          diaSelect.appendChild(opt);
-        });
-// 1. 기본 미터 길이 목록 복사
-    let currentLens = [...metricLens];
+      inchLens.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l;
+        opt.innerText = l;
+        lenSelect.appendChild(opt);
+      });
+    } else {
+      // 미터법 일반 규격
+      metricDias.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.innerText = "M" + d;
+        if (d === "3") opt.selected = true;
+        diaSelect.appendChild(opt);
+      });
 
-    // 2. 니켈(SCM-NI) 계열이면서 직경이 3, 4, 5일 때 7과 9 길이 자동 추가
-    const isNickel = selectedMat.includes("니켈") || selectedMat.includes("NI") || selectedMat.includes("ni");
-    const currentDia = String(diaSelect.value || selectedDia || "3");
-    const isSpecialDia = ["3", "4", "5"].includes(currentDia);
+      // 1. 기본 미터 길이 목록 복사
+      let currentLens = [...metricLens];
 
-    if (isNickel && isSpecialDia) {
-      if (!currentLens.includes("7")) currentLens.push("7");
-      if (!currentLens.includes("9")) currentLens.push("9");
-      currentLens.sort((a, b) => parseFloat(a) - parseFloat(b));
+      // 2. 니켈(SCM-NI) 계열이면서 직경이 3, 4, 5일 때 7과 9 길이 자동 추가
+      const isNickel = selectedMat.includes("니켈") || selectedMat.includes("NI") || selectedMat.includes("ni");
+      const currentDia = String(diaSelect.value || selectedDia || "3");
+      const isSpecialDia = ["3", "4", "5"].includes(currentDia);
+
+      if (isNickel && isSpecialDia) {
+        if (!currentLens.includes("7")) currentLens.push("7");
+        if (!currentLens.includes("9")) currentLens.push("9");
+        currentLens.sort((a, b) => parseFloat(a) - parseFloat(b));
+      }
+
+      // 3. 길이 드롭다운 옵션 생성
+      currentLens.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l;
+        opt.innerText = l + "L";
+        if (l === "10") opt.selected = true;
+        lenSelect.appendChild(opt);
+      });
     }
-
-    // 3. 길이 드롭다운 옵션 생성
-    currentLens.forEach(l => {
-      const opt = document.createElement('option');
-      opt.value = l;
-      opt.innerText = l + "L";
-      if (l === "10") opt.selected = true;
-      lenSelect.appendChild(opt);
-   });
 
     onSpecChange();
   }
