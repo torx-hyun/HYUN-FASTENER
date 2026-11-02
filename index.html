@@ -817,10 +817,10 @@ function isHeadAllowed(mat, head) {
     opt.innerText = "-";
     lenSelect.appendChild(opt);
     onSpecChange();
-    return;
-  } else {
+   return;
     }
-      if (isInch) {
+
+    if (isInch) {
         // 인치 규격 분기: 스텐 사라만 #2부터, 나머지는 #4부터
         const dias = (selectedMat === "스텐" && selectedHead === "사라렌지(INCH)") 
           ? inchDiasAll 
