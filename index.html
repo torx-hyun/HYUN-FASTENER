@@ -801,7 +801,9 @@ function isHeadAllowed(mat, head) {
     const diaSelect = document.getElementById('diaSelect');
     const lenSelect = document.getElementById('lenSelect');
     const isInch = selectedHead.includes("INCH");
-
+    
+    lenSelect.disabled = false;
+    
     diaSelect.innerHTML = "";
     lenSelect.innerHTML = "";
 
