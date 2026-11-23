@@ -1,1206 +1,735 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>현화스너 (Hyun Fastener) 간편 발주 시스템</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>현화스너 생산·후가공 입고관리</title>
   <style>
-    body {
-      background-color: #f1f5f9;
-      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-      -webkit-tap-highlight-color: transparent;
+    :root {
+      --primary: #1e40af;
+      --primary-light: #eff6ff;
+      --accent: #059669;
+      --accent-light: #ecfdf5;
+      --warn: #d97706;
+      --warn-light: #fffbeb;
+      --danger: #dc2626;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #64748b;
     }
+    * { box-sizing: border-box; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 60px; }
+    
+    header {
+      background: var(--primary); color: #fff; padding: 14px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .btn-header {
+      background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+      padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .btn-header:hover { background: rgba(255,255,255,0.3); }
+
+    .container { max-width: 1200px; margin: 16px auto; padding: 0 14px; }
+    
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
+      background: var(--card); padding: 12px 16px; border-radius: 10px;
+      border: 1px solid var(--border); margin-bottom: 16px;
+    }
+    .filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 7px 13px; border-radius: 20px; border: 1px solid var(--border);
+      background: #fff; color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-add-main {
+      background: var(--primary); color: #fff; border: none; padding: 9px 16px;
+      border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .btn-add-main:hover { background: #1d4ed8; }
+
+    .main-grid {
+      display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; align-items: start;
+    }
+    @media (max-width: 860px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--card); border-radius: 12px; border: 1px solid var(--border);
+      padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .panel-title {
+      font-size: 15px; font-weight: 700; margin: 0 0 12px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;
+    }
+
+    .parent-card {
+      border: 1.5px solid var(--border); border-radius: 10px; padding: 14px;
+      margin-bottom: 10px; cursor: pointer; transition: all 0.15s; background: #fff;
+    }
+    .parent-card:hover { border-color: #93c5fd; }
+    .parent-card.selected {
+      border-color: var(--primary); background: var(--primary-light);
+      box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.15);
+    }
+    .p-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+    .p-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .p-spec {
+      display: inline-block; background: #e2e8f0; color: #1e293b;
+      padding: 2px 8px; border-radius: 5px; font-size: 13px; font-weight: 700; margin-left: 6px;
+    }
+    .p-date { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+    .progress-wrap { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+    .progress-bar { height: 100%; background: var(--primary); transition: width 0.3s; }
+    .progress-bar.done { background: var(--accent); }
+
+    .p-stats {
+      display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;
+    }
+    .stat-rem { color: var(--warn); font-weight: 700; }
+    .stat-rem.zero { color: var(--accent); }
+
+    .detail-header {
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+      padding: 12px; margin-bottom: 14px;
+    }
+    .detail-header h3 { margin: 0 0 4px 0; font-size: 16px; }
+    .detail-sub { font-size: 13px; color: var(--muted); }
+
+    .btn-split {
+      width: 100%; background: var(--accent); color: #fff; border: none;
+      padding: 11px; border-radius: 8px; font-size: 14px; font-weight: 700;
+      cursor: pointer; margin-bottom: 14px;
+    }
+    .btn-split:hover { background: #047857; }
+
+    /* 분할 자식 아이템 카드 */
+    .child-item {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+      margin-bottom: 9px; background: #fff; transition: background 0.15s;
+    }
+    .child-item.checked {
+      background: var(--accent-light); border-color: #6ee7b7;
+    }
+    .child-item.exhausted {
+      background: #f8fafc; border-color: #cbd5e1; opacity: 0.72;
+    }
+    .c-info { flex: 1; }
+    .c-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 5px; }
+    .badge-plating {
+      background: #dbeafe; color: #1e40af; padding: 3px 8px; border-radius: 6px;
+      font-size: 13px; font-weight: 700;
+    }
+    .badge-washer {
+      background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 6px;
+      font-size: 13px; font-weight: 700;
+    }
+    .c-kg { font-size: 16px; font-weight: 800; color: var(--text); }
+    .c-meta { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+    .c-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    .check-btn {
+      min-width: 96px; height: 40px; border-radius: 8px; border: 2px solid var(--border);
+      background: #fff; color: var(--text); font-size: 13px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .check-btn.done {
+      background: var(--accent); border-color: var(--accent); color: #fff;
+    }
+    .deduct-btn {
+      min-width: 96px; height: 32px; border-radius: 6px; border: 1px solid #94a3b8;
+      background: #fff; color: #334155; font-size: 12px; font-weight: 700;
+      cursor: pointer;
+    }
+    .deduct-btn:hover { background: #f1f5f9; border-color: #475569; }
+
+    /* 모달 창 */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
+      z-index: 200; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #fff; width: 100%; max-width: 440px; border-radius: 14px;
+      padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-height: 92vh; overflow-y: auto;
+    }
+    .modal h2 { margin: 0 0 14px 0; font-size: 18px; }
+    .form-group { margin-bottom: 13px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: #334155; }
+    .form-group input {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+      font-size: 15px;
+    }
+    /* 큰 버튼 그리드 */
+    .preset-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px; }
+    .preset-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+    .preset-btn {
+      padding: 10px 4px; border: 1.5px solid var(--border); border-radius: 8px;
+      background: #f8fafc; font-size: 14px; font-weight: 700; cursor: pointer; color: #1e293b;
+    }
+    .preset-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+    .btn-cancel {
+      flex: 1; padding: 11px; border: 1px solid var(--border); background: #fff;
+      border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+    .btn-submit {
+      flex: 1.5; padding: 11px; border: none; background: var(--primary); color: #fff;
+      border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;
+    }
+
+    .loading {
+      position: fixed; bottom: 16px; right: 16px; background: #1e293b; color: #fff;
+      padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      display: none; z-index: 300; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .empty-msg { text-align: center; color: var(--muted); padding: 30px 10px; font-size: 14px; }
   </style>
 </head>
-<body class="max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl flex flex-col pb-28 text-slate-800">
+<body>
 
-  <!-- 상단 헤더 -->
-  <header class="bg-blue-900 text-white p-4 sticky top-0 z-30 shadow-md">
-    <div class="flex items-center justify-between">
-      <div>
-        <div class="flex items-center gap-2">
-          <span class="bg-blue-600 text-xs px-2 py-0.5 rounded font-bold">B2B</span>
-          <h1 class="text-lg font-bold tracking-tight">현화스너 (Hyun Fastener)</h1>
-        </div>
-        <p class="text-xs text-blue-200 mt-0.5">간편 모바일 수발주 시스템</p>
-      </div>
-      <a href="tel:1551-5456" class="text-xs bg-blue-800/80 hover:bg-blue-700 px-2.5 py-1.5 rounded-lg flex items-center gap-1 border border-blue-700">
-        <i class="fa-solid fa-phone text-xs"></i> 1551-5456
-      </a>
+<header>
+  <h1>현화스너 생산·후가공 입고관리</h1>
+  <button class="btn-header" onclick="loadData()">↻ 새로고침</button>
+</header>
+
+<div class="container">
+  <div class="toolbar">
+    <div class="filter-group">
+      <button class="filter-btn active" onclick="setFilter('all', this)">전체 보기</button>
+      <button class="filter-btn" onclick="setFilter('rem', this)">반제품 잔량남음</button>
+      <button class="filter-btn" onclick="setFilter('unreceived', this)">미입고 있음</button>
+      <button class="filter-btn" onclick="setFilter('instock', this)">입고재고 보유</button>
     </div>
-  </header>
+    <button class="btn-add-main" onclick="openParentModal()">+ 공장 생산발주 등록</button>
+  </div>
 
-  <main class="p-3 space-y-3 flex-1">
-
-    <!-- 1. 거래처 인증 섹션 -->
-    <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200">
-      <div class="flex items-center justify-between mb-2">
-        <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-          <i class="fa-solid fa-shield-halved text-blue-600"></i> 거래처 본인인증
-        </label>
-        <span id="authBadge" class="text-[11px] text-amber-700 font-bold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">인증 필요</span>
+  <div class="main-grid">
+    <!-- 좌측: 모체 생산발주 목록 -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>1. 공장 생산발주 (원소재/반제품)</span>
+        <span id="parentCount" style="color:var(--primary); font-size:13px;">0건</span>
       </div>
-
-      <!-- 인증 전 입력창 -->
-      <div id="bizInputArea" class="relative flex gap-1.5">
-        <input type="text" id="bizInput" placeholder="사업자번호 뒷 5자리 (예: 48452)" maxlength="5"
-          class="flex-1 bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono tracking-wider">
-        <button id="searchBtn" onclick="searchCompany()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1">
-          <span id="searchBtnText">조회</span>
-        </button>
-      </div>
-
-      <!-- 거래처 정보 카드 -->
-      <div id="companyInfoCard" class="mt-2.5 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1">
-        <div class="text-slate-500 text-center py-1 font-medium" id="authHelpText">
-          사업자등록번호 뒷자리를 조회하셔야 발주서 작성이 가능합니다.
-        </div>
-        <div id="companyDetails" class="hidden space-y-1">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-blue-950 text-sm" id="cName">-</span>
-            <div class="flex items-center gap-1">
-              <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded text-[10px] font-semibold" id="cCode">코드: -</span>
-              <button onclick="resetAuth()" class="text-[10px] text-slate-400 hover:text-red-600 underline ml-1">변경</button>
-            </div>
-          </div>
-          <div class="text-slate-600 flex gap-2">
-            <span>대표: <b class="text-slate-800" id="cCeo">-</b></span>
-            <span>연락처: <b class="text-slate-800" id="cPhone">-</b></span>
-          </div>
-          <div class="text-slate-600 truncate">
-            <span>배송지: </span><span class="text-slate-800" id="cAddr">-</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 신규 거래처 신청 안내 -->
-      <div id="newClientArea" class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-center text-[11px]">
-        <span class="text-slate-500">처음 발주하시는 거래처이신가요?</span>
-        <button type="button" onclick="openRegisterModal()" class="text-blue-600 font-bold hover:underline flex items-center gap-1">
-          <i class="fa-solid fa-user-plus"></i> 신규 거래처 신청
-        </button>
+      <div id="parentList">
+        <div class="empty-msg">데이터를 불러오는 중입니다...</div>
       </div>
     </div>
 
-    <!-- 2. 품목 선택기 -->
-    <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 space-y-3 relative">
-      <h2 class="text-xs font-bold text-slate-700 flex items-center gap-1.5 border-b pb-2">
-        <i class="fa-solid fa-layer-group text-blue-600"></i> 규격 클릭식 선택
-      </h2>
-
-      <!-- [A] 재질 및 도금 -->
-      <div>
-        <span class="text-[11px] font-semibold text-slate-500 block mb-1.5">1. 재질 및 도금</span>
-        <div class="grid grid-cols-3 gap-1.5 text-xs" id="matGroup">
-          <button type="button" onclick="selectMat('스텐', this)" class="mat-btn py-2 px-1 border border-blue-600 bg-blue-50 font-bold text-blue-700 rounded-lg text-center transition">스텐 (304)</button>
-          <button type="button" onclick="selectMat('스텐(316L)', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">스텐(316L)</button>
-          <button type="button" onclick="selectMat('니켈', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">철-NI</button>
-          <button type="button" onclick="selectMat('SCM-NI', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">SCM-NI</button>
-          <button type="button" onclick="selectMat('무전해', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">무전해</button>
-          <button type="button" onclick="selectMat('SCM-착색', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">SCM-착색</button>
-          <button type="button" onclick="selectMat('천연색', this)" class="mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition">천연색</button>
-        </div>
+    <!-- 우측: 후가공 배분 및 입고·차감 -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>2. 후가공 분할 배분 & 입고·출고차감</span>
       </div>
-
-      <!-- [B] 헤드 형태 -->
-<div>
-  <div class="flex justify-between items-center mb-1.5">
-    <span class="text-[11px] font-semibold text-slate-500">2. 헤드 형태</span>
-    <span class="text-[10px] text-amber-600 font-medium" id="headNotice">* 인치 선택 시 인치 규격 자동전환</span>
+      <div id="detailArea">
+        <div class="empty-msg">왼쪽에서 품목을 선택하면<br>후가공 배분 내역과 입고·차감 버튼이 표시됩니다.</div>
+      </div>
+    </div>
   </div>
-
-  <!-- [추가] 대분류 카테고리 탭 (모바일 1줄 또는 2줄 정돈) -->
-  <div class="flex flex-wrap gap-1 mb-2" id="headTabGroup">
-    <button type="button" class="head-tab active" onclick="switchHeadTab('ALL', this)">전체</button>
-    <button type="button" class="head-tab" onclick="switchHeadTab('WRENCH', this)">렌치</button>
-    <button type="button" class="head-tab" onclick="switchHeadTab('TORX', this)">TORX(별)</button>
-    <button type="button" class="head-tab" onclick="switchHeadTab('PLUS', this)">+ M/S</button>
-    <button type="button" class="head-tab" onclick="switchHeadTab('INCH', this)">INCH</button>
-    <button type="button" class="head-tab" onclick="switchHeadTab('ETC', this)">와샤/기타</button>
-  </div>
-
-  <!-- 기존 컨테이너 (스크롤 제거, 쾌적한 높이 유지) -->
-  <div class="flex flex-wrap gap-1.5 p-1.5 bg-slate-50 rounded-lg border border-slate-200 min-h-[50px]" id="headContainer"></div>
 </div>
 
-<style>
-/* 탭 버튼 스타일 */
-.head-tab {
-  padding: 4px 9px;
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.head-tab.active {
-  background-color: #2563eb;
-  border-color: #2563eb;
-  color: #ffffff;
-}
-</style>
-
-      <!-- [C] 직경 & 길이 (동적 생성) -->
-      <div class="grid grid-cols-2 gap-2">
-        <div>
-          <span class="text-[11px] font-semibold text-slate-500 block mb-1" id="diaLabel">3. 호칭경 (직경)</span>
-          <select id="diaSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onSpecChange()">
-          </select>
-        </div>
-        <div>
-          <span class="text-[11px] font-semibold text-slate-500 block mb-1" id="lenLabel">4. 길이 (L)</span>
-          <select id="lenSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="onSpecChange()">
-          </select>
-        </div>
+<!-- 모달 1: 공장 생산발주 등록 -->
+<div class="modal-backdrop" id="parentModal">
+  <div class="modal">
+    <h2>공장 생산발주 등록</h2>
+    <div class="form-group">
+      <label>발주일</label>
+      <input type="date" id="pDate" />
+    </div>
+    
+    <div class="form-group">
+      <label>재질 선택 (클릭)</label>
+      <div class="preset-grid-4" id="matPresets">
+        <button type="button" class="preset-btn active" onclick="selectMat('SCM', this)">SCM</button>
+        <button type="button" class="preset-btn" onclick="selectMat('스텐', this)">스텐</button>
+        <button type="button" class="preset-btn" onclick="selectMat('철', this)">철</button>
+        <button type="button" class="preset-btn" onclick="selectMat('직접입력', this)">직접입력</button>
       </div>
-
-      <!-- [D] 봉단위 수량 선택 -->
-      <div class="bg-amber-50/70 p-2.5 rounded-lg border border-amber-200">
-        <span class="text-[11px] font-semibold text-amber-900 block mb-1.5">5. 봉(Bag) 포장단위 및 수량</span>
-       <div class="grid grid-cols-4 sm:grid-cols-8 gap-1 text-[11px] mb-2" id="bagTypeGroup">
-        <button type="button" onclick="selectBagUnit(5000, this)" class="bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center">5,000</button>
-        <button type="button" onclick="selectBagUnit(3000, this)" class="bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center">3,000</button>
-        <button type="button" onclick="selectBagUnit(2000, this)" class="bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center">2,000</button>
-        <button type="button" onclick="selectBagUnit(1000, this)" class="bag-unit-btn py-1.5 border border-amber-600 bg-amber-100 rounded font-bold text-amber-900 text-center">1,000</button>
-        <button type="button" onclick="selectBagUnit(500, this)" class="bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center">500</button>
-        <button type="button" onclick="selectBagUnit(300, this)" class="bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center">300</button>
-        <button type="button" onclick="selectBagUnit(200, this)" class="bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center">200</button>
-        <button type="button" onclick="selectBagUnit(100, this)" class="bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center">100</button>
-      </div>
-
-        <div class="flex items-center justify-between pt-1">
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-600 font-medium">발주 봉수:</span>
-            <div class="flex items-center border border-slate-300 rounded bg-white">
-              <button onclick="changeBagCount(-1)" class="w-7 h-7 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100">-</button>
-              <input type="number" id="bagCount" value="1" min="1" class="w-10 text-center text-xs font-bold focus:outline-none" onchange="calcTotalQty()">
-              <button onclick="changeBagCount(1)" class="w-7 h-7 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100">+</button>
-            </div>
-            <span class="text-xs font-bold text-slate-700">봉</span>
-          </div>
-
-          <div class="text-right">
-            <span class="text-[10px] text-slate-600 block">총 발주 수량</span>
-            <span class="text-sm font-extrabold text-blue-700" id="calcQtyResult">1,000개</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 선택 품목 요약 & 재고 상태 & 담기 -->
-      <div class="pt-1 space-y-2">
-        <div class="p-2.5 bg-slate-100 rounded-lg text-xs font-medium text-slate-700 flex justify-between items-center">
-          <div class="truncate mr-2">
-            선택: <span class="font-bold text-blue-900" id="previewSpecText">-</span>
-          </div>
-          <div id="stockBadge" class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700">
-            재고 확인중..
-          </div>
-        </div>
-
-        <button id="addCartBtn" onclick="addToCart()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition">
-          <i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기
-        </button>
-      </div>
-
+      <input type="text" id="pMat" value="SCM" placeholder="재질 입력" />
     </div>
 
-    <!-- 3. 발주 내역 (장바구니) -->
-    <div class="bg-white rounded-xl p-3.5 shadow-sm border border-slate-200">
-      <div class="flex justify-between items-center mb-2">
-        <h2 class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-          <i class="fa-solid fa-clipboard-list text-blue-600"></i> 발주 내역 (<span id="cartCount">0</span>건)
-        </h2>
-        <button onclick="clearCart()" class="text-[11px] text-red-500 hover:underline">전체비우기</button>
-      </div>
-
-      <div id="cartList" class="space-y-2 text-xs">
-        <div class="text-center py-6 text-slate-600 text-xs">담긴 발주 품목이 없습니다.</div>
-      </div>
-
-      <div class="mt-3 pt-2.5 border-t border-slate-100 flex justify-between items-center text-xs">
-        <span class="font-semibold text-slate-600">합계 수량:</span>
-        <span class="text-base font-extrabold text-blue-900" id="totalOrderQty">0개</span>
-      </div>
-
-      <div class="mt-2.5">
-        <input type="text" id="orderMemo" placeholder="요청사항 (예: 마대포장 요망, 경동화물 발송)"
-          class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-      </div>
+    <div class="form-group">
+      <label>머리모양 / 품목명 (수동 입력)</label>
+      <input type="text" id="pHead" list="headHistory" placeholder="예: 유두렌지(12.9), 둥근머리, 접시머리" />
+      <datalist id="headHistory"></datalist>
     </div>
 
-  </main>
+    <div class="form-group">
+      <label>규격 (호칭×길이)</label>
+      <input type="text" id="pSpec" placeholder="예: 3*10 또는 M4*12" />
+    </div>
 
-  <!-- 하단 발주 접수 버튼 -->
-  <div class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-3 bg-white/95 backdrop-blur border-t border-slate-200 z-20">
-    <button id="submitBtn" onclick="submitOrder()" disabled class="w-full bg-slate-300 cursor-not-allowed text-white font-bold py-3.5 rounded-xl shadow flex items-center justify-center gap-2 text-sm transition">
-      <i class="fa-solid fa-lock"></i> 거래처 인증 후 접수 가능
-    </button>
-  </div>
+    <div class="form-group">
+      <label>총 발주 중량 (kg)</label>
+      <input type="number" id="pKg" placeholder="예: 1000" inputmode="numeric" />
+    </div>
 
-  <!-- 접수 완료 모달 -->
-  <div id="receiptModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 text-xs max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b pb-2">
-        <div class="flex items-center gap-2">
-          <div class="w-6 h-6 rounded-full bg-blue-900 text-white flex items-center justify-center text-[10px] font-bold">HF</div>
-          <span class="font-bold text-slate-800">현화스너 알림톡 안내</span>
-        </div>
-        <button onclick="closeReceiptModal()" class="text-slate-600 text-base font-bold">&times;</button>
-      </div>
+    <div class="form-group">
+      <label>비고 (선택)</label>
+      <input type="text" id="pNote" placeholder="공장명 또는 메모" />
+    </div>
 
-      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 text-slate-800" id="receiptContent">
-        <div class="font-bold text-blue-950 text-sm">[현화스너] 발주 정상 접수</div>
-        <p class="text-xs text-slate-600 leading-relaxed">
-          <span id="rcpCompany" class="font-bold text-slate-900"></span> <span id="rcpCeo"></span> 대표님, 주문하신 발주 내역이 성공적으로 접수되었습니다.
-        </p>
-
-        <div class="bg-white p-2.5 rounded-lg border border-slate-200 space-y-1 font-mono text-[11px]">
-          <div>■ <b>주문번호</b> : <span id="rcpOrderId" class="text-blue-600 font-bold"></span></div>
-          <div>■ <b>접수일시</b> : <span id="rcpOrderDate"></span></div>
-          <div>■ <b>상태</b> : <span class="bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded font-sans font-bold">접수완료(DB기록됨)</span></div>
-        </div>
-
-        <div class="space-y-1 text-xs pt-1" id="rcpItemsList"></div>
-
-        <div class="text-[11px] text-slate-600 pt-1 border-t border-slate-200">
-          ■ <b>배송지</b>: <span id="rcpAddr"></span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-2 pt-1">
-        <button onclick="copyReceiptText()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 py-2.5 rounded-lg font-bold flex items-center justify-center gap-1.5 transition">
-          <i class="fa-regular fa-copy"></i> 내용 복사
-        </button>
-        <button onclick="closeReceiptModal()" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold transition">확인</button>
-      </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('parentModal')">취소</button>
+      <button class="btn-submit" onclick="submitParent()">발주 등록하기</button>
     </div>
   </div>
+</div>
 
-  <!-- 신규 거래처 등록 신청 팝업 모달 -->
-  <div id="registerModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 text-xs max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between border-b pb-2">
-        <div class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
-          <i class="fa-solid fa-building text-blue-600"></i> 현화스너 신규 거래처 등록 신청
-        </div>
-        <button onclick="closeRegisterModal()" class="text-slate-500 text-base font-bold">&times;</button>
+<!-- 모달 2: 후가공 분할 배분 추가 -->
+<div class="modal-backdrop" id="childModal">
+  <div class="modal">
+    <h2>후가공 분할 배분 추가</h2>
+    <div id="splitTargetInfo" style="background:#eff6ff; padding:10px; border-radius:8px; font-size:13px; margin-bottom:12px; font-weight:600;"></div>
+    
+    <div class="form-group">
+      <label>후처리 / 도금 선택 (클릭)</label>
+      <div class="preset-grid-3" id="platingPresets">
+        <button type="button" class="preset-btn active" onclick="selectPreset('plating', '니켈', this)">니켈</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('plating', '무전해', this)">무전해</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('plating', '삼가백색', this)">삼가백색</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('plating', '산세', this)">산세</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('plating', '생지', this)">생지</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('plating', '직접입력', this)">직접입력</button>
       </div>
+      <input type="text" id="cPlating" value="니켈" />
+    </div>
 
-      <form id="regForm" onsubmit="submitRegister(event)" class="space-y-2.5 pt-1">
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">사업자등록번호 뒷 5자리 <span class="text-red-500">*</span></label>
-          <input type="text" id="regBizNo" required maxlength="5" minlength="5" pattern="\d{5}" inputmode="numeric" title="사업자등록번호 뒷 5자리 숫자를 입력해주세요" placeholder="5자리 숫자 입력 (예: 12345)"
-            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-mono text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
-        </div>
+    <div class="form-group">
+      <label>와샤 / 형태 구분 (단축버튼 또는 수동입력)</label>
+      <div class="preset-grid-4" id="washerPresets">
+        <button type="button" class="preset-btn active" onclick="selectPreset('washer', '단품', this)">단품</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('washer', 'SP/W', this)">SP/W</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('washer', 'S/W', this)">S/W</button>
+        <button type="button" class="preset-btn" onclick="selectPreset('washer', 'P/W', this)">P/W</button>
+      </div>
+      <input type="text" id="cWasher" list="washerHistory" value="단품" placeholder="직접 입력 가능 (예: SP/W, 특수와샤 등)" />
+      <datalist id="washerHistory"></datalist>
+    </div>
 
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">상호명 (거래처명) <span class="text-red-500">*</span></label>
-          <input type="text" id="regName" required placeholder="예: (주)한국볼트"
-            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
-        </div>
+    <div class="form-group">
+      <label>배분 중량 (kg) — <span id="maxRemLabel" style="color:var(--primary);"></span></label>
+      <input type="number" id="cKg" placeholder="예: 500" inputmode="numeric" />
+    </div>
 
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">대표자명 <span class="text-red-500">*</span></label>
-            <input type="text" id="regCeo" required placeholder="홍길동"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
-          </div>
-          <div>
-            <label class="block text-[11px] font-bold text-slate-600 mb-1">연락처 <span class="text-red-500">*</span></label>
-            <input type="text" id="regPhone" required placeholder="010-0000-0000"
-              class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none">
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-[11px] font-bold text-slate-600 mb-1">기본 납품 주소 (배송지) <span class="text-red-500">*</span></label>
-          <textarea id="regAddr" required rows="2" placeholder="도로명 주소 및 상세 주소 (화물영업소 지점명 가능)"
-            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-blue-500 focus:outline-none"></textarea>
-        </div>
-
-        <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-lg p-2 text-[10px] leading-tight">
-          * 신청 제출 후 현화스너 관리자의 승인이 완료되면 발주서 작성이 가능합니다. (급한 발주는 1551-5456 문의)
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 pt-2">
-          <button type="button" onclick="closeRegisterModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-lg font-bold">취소</button>
-          <button type="submit" id="regSubmitBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-bold flex items-center justify-center gap-1">신청 접수</button>
-        </div>
-      </form>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('childModal')">취소</button>
+      <button class="btn-submit" style="background:var(--accent);" onclick="submitChild()">배분 추가하기</button>
     </div>
   </div>
+</div>
 
-  <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw4pC0BbJl-iwzj_J8tpOT8fBCmSbx7WM8gBIG6qWJT0fvHJ2fjMtbxF6UV7ll0FuJOjA/exec";
+<!-- 모달 3: 입고 물량 출고/포장 차감 -->
+<div class="modal-backdrop" id="deductModal">
+  <div class="modal">
+    <h2>입고 재고 출고/포장 차감</h2>
+    <div id="deductTargetInfo" style="background:#ecfdf5; padding:10px; border-radius:8px; font-size:13px; margin-bottom:14px; font-weight:600; color:#065f46;"></div>
+    <input type="hidden" id="dChildId" />
+    <div class="form-group">
+      <label>이번에 빼갈 중량 (kg)</label>
+      <input type="number" id="dUseKg" placeholder="예: 40" inputmode="numeric" />
+    </div>
+    <div style="display:flex; gap:6px; margin-bottom:12px;">
+      <button type="button" class="preset-btn" style="flex:1;" onclick="setAllDeduct()">전량 모두 빼기 (0kg 처리)</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('deductModal')">취소</button>
+      <button class="btn-submit" onclick="submitDeduct()">차감 저장하기</button>
+    </div>
+  </div>
+</div>
 
-  const allHeads = [
-  "S/W", "P/W",
-  "낮은머리", "유두렌지", "유두렌지SP/W", "유두렌지SP/W(12.9)", "유두렌지S/W", "유두렌지S/W(12.9)", "유두렌지SP/W(大)", "사라렌지", "마루렌지", "낮은머리렌지",
-  "유두별렌지", "사라별", "사라핀별", "마루별", "마루핀별",
-  "유두렌지(INCH)", "사라렌지(INCH)", "마루렌지(INCH)", "P+-(INCH)", "F+-(INCH)", "T+-(INCH)",
-  "P+M/S", "F+M/S", "T+M/S", "B+M/S", "P+SP/W", "P+SP/W(大)", "P+S/W", "HEX+S/W", "HEX+SP/W", "HEX+SP/W(대)", "유두렌지(좌산)"
-];
+<div class="loading" id="loadingBox">처리 중...</div>
 
- // [수정] 현재 선택된 탭 기억
-  let currentActiveHeadTab = 'ALL';
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbxHUXkhbanp9-g9rjAleUGKHCm_OQQaLJPwdnz4t3wdHU1YoyFntRlPrOxmny-bJBzp/exec";
 
-  // [수정] 탭별 정확한 품목 리스트 매핑
-  const headCategoryMap = {
-    WRENCH: [
-      "유두렌치", "유두렌치SP/W", "유두렌치SP/W(12.9)", "유두렌치S/W", 
-      "유두렌치S/W(12.9)", "유두렌치SP/W(大)", "사라렌치", "마루렌치", 
-      "낮은머리", "낮은머리렌치", "유두렌치(좌산)"
-    ],
-    TORX: [
-      "유두별렌치", "사라별", "사라핀별", "마루별", "마루핀별"
-    ],
-    PLUS: [
-      "P+M/S", "F+M/S", "T+M/S", "B+M/S", "P+SP/W", "P+SP/W(大)", "P+S/W"
-    ],
-    INCH: [
-      "유두렌치(INCH)", "사라렌치(INCH)", "마루렌치(INCH)", 
-      "P+-(INCH)", "F+-(INCH)", "T+-(INCH)"
-    ],
-    ETC: [
-      "S/W", "P/W", "HEX+S/W", "HEX+SP/W", "HEX+SP/W(대)"
-    ]
+  let allParents = [];
+  let allChildren = [];
+  let selectedParentId = null;
+  let currentFilter = 'all';
+  let currentDeductMax = 0;
+
+  window.onload = () => {
+    document.getElementById('pDate').value = new Date().toISOString().split('T')[0];
+    loadData();
   };
 
-// [수정] 볼트 헤드 필터링 완벽 함수
-  function applyHeadTabFilter() {
-    const buttons = document.querySelectorAll('#headContainer button');
-    const tabKey = (currentActiveHeadTab || 'ALL').toUpperCase();
+  function showLoading(msg) {
+    const box = document.getElementById('loadingBox');
+    box.textContent = msg || '처리 중...';
+    box.style.display = 'block';
+  }
+  function hideLoading() {
+    document.getElementById('loadingBox').style.display = 'none';
+  }
 
-    buttons.forEach(btn => {
-      // 1. '전체' 탭일 때는 모든 버튼 표시
-      if (tabKey === 'ALL') {
-        btn.style.display = '';
-        return;
+  async function loadData() {
+    showLoading('데이터 불러오는 중...');
+    try {
+      const res = await fetch(API_URL + '?action=getData');
+      const json = await res.json();
+      if (json.status === 'success') {
+        allParents = json.parents.reverse();
+        allChildren = json.children.map(c => ({
+          ...c,
+          usedKg: Number(c.usedKg) || 0
+        }));
+        if (!selectedParentId && allParents.length > 0) {
+          selectedParentId = allParents[0].id;
+        }
+        updateDatalists();
+        renderParents();
+        renderDetail();
       }
+    } catch (err) {
+      alert('데이터를 불러오지 못했습니다. 새로고침해 주세요.');
+    } finally {
+      hideLoading();
+    }
+  }
 
-      // 버튼 안의 글자 (공백 제거, 대문자 변환)
-      const text = (btn.textContent || btn.innerText || '').replace(/\s+/g, '').toUpperCase();
-
-      // 2. [INCH] 탭: 이름에 INCH 또는 인치가 들어간 것만 표시
-      if (tabKey === 'INCH') {
-        btn.style.display = (text.includes('INCH') || text.includes('인치')) ? '' : 'none';
-        return;
-      }
-
-      // 3. 다른 모든 탭에서는 INCH 제품 무조건 제외 (인치가 렌지나 다른 탭에 절대 안 섞임)
-      if (text.includes('INCH') || text.includes('인치')) {
-        btn.style.display = 'none';
-        return;
-      }
-
-      // 4. [렌치/렌지] 탭: 별(TORX) 제외, '렌지'/'렌치'/'낮은머리' 및 12.9/좌산 품목 전체 포함
-      if (tabKey === 'WRENCH' || tabKey === '렌치' || tabKey === '렌지') {
-        const isTorx = text.includes('별') || text.includes('TORX');
-        const isWrench = text.includes('렌지') || text.includes('렌치') || text.includes('낮은머리');
-        btn.style.display = (!isTorx && isWrench) ? '' : 'none';
-        return;
-      }
-
-      // 5. [TORX(별)] 탭: 이름에 별 또는 TORX 포함 품목
-      if (tabKey === 'TORX' || tabKey === '별') {
-        btn.style.display = (text.includes('별') || text.includes('TORX')) ? '' : 'none';
-        return;
-      }
-
-   // 6. [+ M/S] 탭: +M/S, +SP/W 등 십자/조립 볼트류 및 HEX+ 조립류 포함
-      if (tabKey === 'PLUS' || tabKey === '+') {
-        const isPlus = text.includes('+M/S') || text.includes('+S/W') || text.includes('+SP/W') || text.includes('+-') || text.includes('HEX+');
-        btn.style.display = isPlus ? '' : 'none';
-        return;
-      }
-
-      // 7. [와샤/기타] 탭: 순수 와샤(S/W, P/W) 및 단독 HEX류 (HEX+ 조립류는 제외)
-      if (tabKey === 'ETC' || tabKey === '기타') {
-        const isHexPlus = text.includes('HEX+');
-        const isEtc = (text.startsWith('S/W') || text.startsWith('P/W') || text === 'SW' || text === 'PW' || (text.includes('HEX') && !isHexPlus));
-        btn.style.display = (!isHexPlus && isEtc) ? '' : 'none';
-        return;
-      }
-btn.style.display = 'none';
+  // 기존 입력했던 머리모양/와샤 자동완성 후보 업데이트
+  function updateDatalists() {
+    const heads = new Set();
+    allParents.forEach(p => {
+      const parts = p.item.split(' ');
+      if (parts.length > 1) heads.add(parts.slice(1).join(' '));
     });
+    document.getElementById('headHistory').innerHTML = Array.from(heads).map(h => `<option value="${h}">`).join('');
+
+    const washers = new Set(['단품', 'SP/W', 'S/W', 'P/W']);
+    allChildren.forEach(c => { if (c.washer) washers.add(c.washer); });
+    document.getElementById('washerHistory').innerHTML = Array.from(washers).map(w => `<option value="${w}">`).join('');
   }
 
-  // [수정] 탭 클릭 시 상태 저장 및 필터 실행
-  function switchHeadTab(tabKey, tabBtn) {
-    currentActiveHeadTab = (tabKey || 'ALL').toUpperCase();
-    document.querySelectorAll('#headTabGroup .head-tab').forEach(b => b.classList.remove('active'));
-    if (tabBtn) tabBtn.classList.add('active');
-    applyHeadTabFilter();
-  }
-  const metricDias = ["1.6", "2", "2.3", "2.5", "2.6", "3", "4", "5", "6", "8", "10"];
-  const metricLens = ["3", "4", "5", "6", "8", "10", "12", "14", "15", "16", "18", "20", "22", "25", "30", "35", "40", "45", "50", "55", "60", "65", "70"];
-
-  const inchDiasAll = ["#2-56", "#4-40", "#5-40", "#6-32", "#8-32", "#10-24", "#10-32", "1/4-20", "5/16-18"];
-  const inchDiasFrom4 = ["#4-40", "#5-40", "#6-32", "#8-32", "#10-24", "#10-32", "1/4-20", "5/16-18"];
-  const inchLens = ["3/16", "1/4", "5/16", "3/8", "7/16", "1/2", "5/8", "3/4", "7/8", "1\"", "1\"1/4", "1\"1/2"];
-
-  let currentCompany = null;
-  let selectedMat = "스텐";
-  let selectedHead = "유두렌치";
-  let selectedBagUnit = 1000;
-  let currentStockData = { available: false, stock: 0 };
-  let cart = [];
-
-  window.onload = function() {
-  loadSavedCompany();
-  renderHeadOptions();
-  updateSpecDropdowns();
-};
-    function loadSavedCompany() {
-      const saved = localStorage.getItem("hf_auth_company");
-      if (saved) {
-        try {
-          applyAuthenticatedCompany(JSON.parse(saved));
-        } catch (e) {
-          localStorage.removeItem("hf_auth_company");
-        }
-      }
-    }
-
-    function applyAuthenticatedCompany(company) {
-      currentCompany = company;
-
-      document.getElementById('authBadge').className = "text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded";
-      document.getElementById('authBadge').innerText = "인증 완료 (자동연결)";
-
-      document.getElementById('bizInputArea').classList.add('hidden');
-      document.getElementById('newClientArea').classList.add('hidden');
-      document.getElementById('authHelpText').classList.add('hidden');
-      document.getElementById('companyDetails').classList.remove('hidden');
-
-      document.getElementById('cName').innerText = currentCompany.name;
-      document.getElementById('cCode').innerText = "코드: " + currentCompany.code;
-      document.getElementById('cCeo').innerText = currentCompany.ceo;
-      document.getElementById('cPhone').innerText = currentCompany.phone;
-      document.getElementById('cAddr').innerText = currentCompany.addr;
-
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = false;
-      submitBtn.className = "w-full bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition";
-      submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> 발주 접수하기`;
-    }
-
-    function resetAuth() {
-      if (confirm("거래처 인증을 해제하고 다른 번호로 변경하시겠습니까?")) {
-        localStorage.removeItem("hf_auth_company");
-        currentCompany = null;
-
-        document.getElementById('authBadge').className = "text-[11px] text-amber-700 font-bold bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded";
-        document.getElementById('authBadge').innerText = "인증 필요";
-
-        document.getElementById('bizInputArea').classList.remove('hidden');
-        document.getElementById('newClientArea').classList.remove('hidden');
-        document.getElementById('authHelpText').classList.remove('hidden');
-        document.getElementById('authHelpText').innerText = "사업자등록번호 뒷자리를 조회하셔야 발주서 작성이 가능합니다.";
-        document.getElementById('companyDetails').classList.add('hidden');
-
-        document.getElementById('bizInput').value = "";
-
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-3.5 rounded-xl shadow flex items-center justify-center gap-2 text-sm transition";
-        submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> 거래처 인증 후 접수 가능`;
-      }
-    }
-
-    async function searchCompany() {
-      const val = document.getElementById('bizInput').value.trim();
-      if (!val) {
-        alert("사업자등록번호 뒷자리를 입력해주세요.");
-        return;
-      }
-
-      const searchBtnText = document.getElementById('searchBtnText');
-      searchBtnText.innerText = "조회중..";
-
-      try {
-        const response = await fetch(`${GOOGLE_SCRIPT_URL}?bizNo=${encodeURIComponent(val)}`);
-        const result = await response.json();
-
-        if (result.result === "success" && result.company) {
-          localStorage.setItem("hf_auth_company", JSON.stringify(result.company));
-          applyAuthenticatedCompany(result.company);
-        } else if (result.result === "pending") {
-          lockAuth(`[${result.name}] 관리자 승인 대기 중입니다.\n현화스너(1551-5456)로 승인 문의 부탁드립니다.`, "승인 대기");
-        } else if (result.result === "blocked") {
-          lockAuth(`[${result.name}] 거래가 일시 정지된 거래처입니다.\n현화스너(1551-5456)로 문의 바랍니다.`, "거래 정지");
-        } else {
-          lockAuth("등록되지 않은 사업자번호입니다.\n아래 [신규 거래처 신청] 버튼을 눌러 등록 신청을 진행해 주세요.", "미등록");
-        }
-      } catch (err) {
-        alert("거래처 조회 중 통신 오류가 발생했습니다. 다시 시도해 주세요.");
-      } finally {
-        searchBtnText.innerText = "조회";
-      }
-    }
-
-    function lockAuth(message, badgeText) {
-      localStorage.removeItem("hf_auth_company");
-      currentCompany = null;
-      document.getElementById('authBadge').className = "text-[11px] text-red-700 font-bold bg-red-50 border border-red-200 px-1.5 py-0.5 rounded";
-      document.getElementById('authBadge').innerText = badgeText || "인증 실패";
-
-      document.getElementById('authHelpText').classList.remove('hidden');
-      document.getElementById('authHelpText').innerText = message;
-      document.getElementById('companyDetails').classList.add('hidden');
-
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-3.5 rounded-xl shadow flex items-center justify-center gap-2 text-sm transition";
-      submitBtn.innerHTML = `<i class="fa-solid fa-lock"></i> 거래처 인증 후 접수 가능`;
-
-      if (message) alert(message);
-    }
-
-    function openRegisterModal() {
-      const currentInput = document.getElementById('bizInput').value.trim();
-      if (currentInput) {
-        document.getElementById('regBizNo').value = currentInput;
-      }
-      document.getElementById('registerModal').classList.remove('hidden');
-    }
-
-    function closeRegisterModal() {
-      document.getElementById('registerModal').classList.add('hidden');
-    }
-
-    async function submitRegister(e) {
-      e.preventDefault();
-      const bizVal = (document.getElementById('regBizNo').value || '').trim();
-  if (!/^\d{5}$/.test(bizVal)) {
-    alert("사업자등록번호 뒷자리는 반드시 숫자 5자리로 입력해 주세요.");
-    document.getElementById('regBizNo').focus();
-    return;
-  }
-      const btn = document.getElementById('regSubmitBtn');
-      const originText = btn.innerText;
-      btn.disabled = true;
-      btn.innerText = "신청 중...";
-
-      const payload = {
-        type: "register_client",
-        bizNo: document.getElementById('regBizNo').value.trim(),
-        companyName: document.getElementById('regName').value.trim(),
-        ceo: document.getElementById('regCeo').value.trim(),
-        phone: document.getElementById('regPhone').value.trim(),
-        address: document.getElementById('regAddr').value.trim()
-      };
-
-      try {
-        const res = await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        const resJson = await res.json();
-
-        if (resJson.result === "success") {
-          alert(`신규 거래처 신청이 접수되었습니다! (부여코드: ${resJson.code})\n관리자 승인 완료 후 바로 발주하실 수 있습니다.`);
-          closeRegisterModal();
-          document.getElementById('bizInput').value = payload.bizNo;
-          document.getElementById('regForm').reset();
-        } else if (resJson.result === "duplicate") {
-          alert(resJson.message);
-        } else {
-          alert("신청 중 오류가 발생했습니다. 현화스너로 문의 바랍니다.");
-        }
-      } catch (err) {
-        alert("접수 중 오류가 발생했습니다: " + err);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = originText;
-      }
-    }
-
-    function selectMat(mat, btn) {
-      selectedMat = mat;
-      document.querySelectorAll('.mat-btn').forEach(b => {
-        b.className = "mat-btn py-2 px-1 border border-slate-200 hover:bg-slate-50 rounded-lg text-center transition";
-      });
-      btn.className = "mat-btn py-2 px-1 border border-blue-600 bg-blue-50 font-bold text-blue-700 rounded-lg text-center transition";
-      renderHeadOptions();
-      updateSpecDropdowns();
-    }
-
-// 재질별 허용 헤드 판단 (화면 버튼 텍스트와 100% 일치하도록 보강)
-function isHeadAllowed(mat, head) {
-  // 1. 천연색: 취급 헤드 목록 (렌지류 + 기존 HEX/와샤류 포함)
-  if (mat.includes("천연색")) {
-    const allowedChunyeon = [
-      "유두렌지", "유두렌지SP/W", "유두렌지S/W", "사라렌지", "마루렌지", "낮은머리", "낮은머리렌지",
-      "HEX+S/W", "HEX+SP/W", "HEX+SP/W(대)", "P+S/W", "P+SP/W", "S/W", "P/W"
-    ];
-    return allowedChunyeon.includes(head);
+  function setFilter(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderParents();
   }
 
-  // 2. 착색 (SCM-착색)
-  if (mat.includes("착색")) {
-    const allowedChaksaek = [
-      "낮은머리", "유두렌지", "유두렌지(INCH)", "유두별렌지",
-      "마루렌지(INCH)", "마루별", "마루핀별", "사라렌지(INCH)", "사라별"
-    ];
-    return allowedChaksaek.includes(head);
-  }
-
-  const clean = (str) => String(str || "").replace(/[\s\-_/()大]/g, "").toLowerCase();
-  const cMat = clean(mat);
-  const cHead = clean(head);
-
-  // 3. SCM-NI: '大', '대', '사라핀별' 제외 (12.9 및 좌산 정상 허용)
-  if (cMat === "scmni" || cMat === "scm-ni") {
-    const h = String(head || "");
-    if (h.includes("大") || h.includes("대") || h === "사라핀별" || cHead.includes("대")) {
-      return false;
-    }
-  }
-
-  // 1. 스텐 (304) -> "스텐", "스텐304" 모두 인식
-  if (cMat === "스텐" || cMat === "스텐304") {
-    const allowed = [
-      "유두렌지", "유두렌지spw", "유두렌지sw", "유두렌지spw대", "스텐유두렌지spw대",
-      "사라렌지", "마루렌지", "낮은머리렌지", "낮은머리렌지low",
-      "유두별", "유두별렌지", "사라별", "마루별", "사라핀별", "마루핀별",
-      "유두렌지inch", "사라렌지inch", "마루렌지inch",
-      "유두렌지좌산",
-      "p+inch", "f+inch", "t+inch",
-      "p+", "f+", "t+", "b+", "o+", "p+ms", "f+ms", "o+ms", "t+ms", "b+ms",
-      "p+spw", "p+sw", "hexspw", "hexspw대", "hex+spw",
-      "sw렌지용", "sw", "pw"
-    ];
-    return allowed.some(item => clean(item) === cHead);
-  }
-
-// 2. 스텐 (316L) 매칭 (대문자 L, 소문자 l 모두 지원 / 大 와샤 완벽 차단)
-  if (cMat === "스텐316l" || cMat === "스텐316L" || cMat === "스텐3161") {
-    // 버튼 텍스트(head)에 '大'나 '대'가 들어있으면 316L에서는 무조건 숨김
-    if (String(head || "").includes("大") || String(head || "").includes("대")) {
-      return false;
-    }
-
-    const allowed = [
-      "유두렌지", "유두렌지316l", "유두렌지316L",
-      "유두렌지spw", "유두렌지spw316l", "유두렌지spw316L",
-      "사라렌지", "사라렌지316l", "사라렌지316L",
-      "마루렌지", "마루렌지316l", "마루렌지316L",
-      "sw", "pw"
-    ];
-    return allowed.some(item => clean(item) === cHead);
-  }
-  // 3. 철-NI -> "철ni"로 매칭
-  if (cMat === "철ni" || cMat === "니켈") {
-    const allowed = [
-      "p+spw", "p+sw", "p+spw대",
-      "hexspw", "hexspw대", "hex+spw",
-      "sw", "pw"
-    ];
-    return allowed.some(item => clean(item) === cHead);
-  }
-
-  // 4. 철-천연색 -> "철천연색"으로 매칭
-  if (cMat === "철천연색") {
-    const allowed = [
-      "p+spw", "p+sw", "p+spw대",
-      "hexspw", "hexspw대", "hex+spw",
-      "sw", "pw", "sw렌지용"
-    ];
-    return allowed.some(item => clean(item) === cHead);
-  }
-
-  // 5. SCM-천연색 (취급 안 함)
-  if (cMat === "scm천연색") {
-    return false;
-  }
-
-// 6. SCM-무전해 및 무전해 버튼 매칭
-    if (cMat === "scm무전해" || cMat === "무전해") {
-      // 무전해는 (大) 규격 무조건 제외
-      if (String(head || "").includes("大") || String(head || "").includes("대")) {
-        return false;
-      }
-      const allowed = [
-        "유두렌지", "유두렌지SP/W", "유두렌지SP/W(12.9)", "유두렌지S/W", "유두렌지S/W(12.9)",
-        "사라렌지", "마루렌지",
-        "S/W", "P/W", "sw", "pw"
-      ];
-      return allowed.some(item => clean(item) === cHead);
-    }
-
-    // 7. SCM-NI 매칭
-    if (cMat === "scmni" || cMat === "scm-ni") {
-      const allowed = [
-        "유두렌지", "유두렌지SP/W", "유두렌지SP/W(12.9)", "유두렌지S/W", "유두렌지S/W(12.9)",
-        "사라렌지", "마루렌지",
-        "유두별", "유두별렌지", "사라별", "마루별", "마루핀별"
-      ];
-      return allowed.some(item => clean(item) === cHead);
-    }
-
-    // 8. SCM-착색 -> "scm착색"으로 매칭
-    if (cMat === "scm착색") {
-      const allowed = [
-        "유두별", "유두별렌지", "사라별", "마루별", "사라핀별", "마루핀별",
-        "유두렌지inch", "사라렌지inch", "마루렌지inch",
-        "sw", "pw"
-      ];
-      return allowed.some(item => clean(item) === cHead);
-    }
-
-    return false;
-  }
-
- function renderHeadOptions() {
-    const container = document.getElementById('headContainer');
-    container.innerHTML = "";
-    let firstValidHead = null;
-
-    allHeads.forEach(head => {
-      const allowed = isHeadAllowed(selectedMat, head);
-      if (!allowed) return;
-
-      const btn = document.createElement('button');
-      btn.type = "button";
-
-      if (!firstValidHead) firstValidHead = head;
-      const isSelected = (head === selectedHead);
-      btn.className = isSelected
-        ? "px-4 py-3 rounded-xl text-sm font-bold bg-blue-600 text-white shadow-md flex-1 min-h-[44px]"
-        : "px-4 py-3 rounded-xl text-sm font-medium bg-white text-slate-700 border border-slate-300 hover:bg-slate-100 flex-1 min-h-[44px]";
-
-      btn.onclick = () => {
-        selectedHead = head;
-        renderHeadOptions();
-        updateSpecDropdowns();
-        onSpecChange();
-      };
-
-      btn.innerText = head;
-      container.appendChild(btn);
+  function renderParents() {
+    const container = document.getElementById('parentList');
+    let filtered = allParents.map(p => {
+      const myChildren = allChildren.filter(c => c.parentId === p.id);
+      const allocatedKg = myChildren.reduce((sum, c) => sum + c.kg, 0);
+      const remKg = p.totalKg - allocatedKg;
+      const hasUnreceived = myChildren.some(c => !c.checked);
+      const hasInStock = myChildren.some(c => c.checked && (c.kg - c.usedKg) > 0);
+      return { ...p, allocatedKg, remKg, hasUnreceived, hasInStock };
     });
 
-    if (!isHeadAllowed(selectedMat, selectedHead)) {
-      selectedHead = firstValidHead || "유두렌지";
-      renderHeadOptions();
+    if (currentFilter === 'rem') {
+      filtered = filtered.filter(p => p.remKg > 0);
+    } else if (currentFilter === 'unreceived') {
+      filtered = filtered.filter(p => p.hasUnreceived);
+    } else if (currentFilter === 'instock') {
+      filtered = filtered.filter(p => p.hasInStock);
+    }
+
+    document.getElementById('parentCount').textContent = filtered.length + '건';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="empty-msg">해당 조건의 발주 내역이 없습니다.</div>';
       return;
     }
 
-    applyHeadTabFilter();
-  }
-
-  // 헤드 형태에 따라 직경과 길이 선택창 업데이트
-  function updateSpecDropdowns() {
-  const diaSelect = document.getElementById('diaSelect');
-  const lenSelect = document.getElementById('lenSelect');
-  const isInch = selectedHead.includes("INCH");
-
-  lenSelect.disabled = false;
-
-  diaSelect.innerHTML = "";
-  lenSelect.innerHTML = "";
-
-  // 와셔(S/W, P/W) 전용 분기: 호칭경만 2~12로 채우고 길이는 '-' 처리
-  const isWasher = (selectedHead === "S/W" || selectedHead === "P/W");
-  if (isWasher) {
-    lenSelect.disabled = true;
-    const washerDias = ["2", "2.5", "3", "4", "5", "6", "8", "10", "12"];
-    washerDias.forEach(d => {
-      const opt = document.createElement('option');
-      opt.value = d;
-      opt.innerText = "M" + d;
-      diaSelect.appendChild(opt);
-    });
-    const opt = document.createElement('option');
-    opt.value = "";
-    opt.innerText = "-";
-    lenSelect.appendChild(opt);
-    return;
-  }
-
-    if (isInch) {
-      // 인치 규격 분기: 스텐 사라만 #2부터, 나머지는 #4부터
-      const dias = (selectedMat === "스텐" && selectedHead === "사라렌지(INCH)")
-        ? inchDiasAll
-        : inchDiasFrom4;
-
-      dias.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.innerText = d;
-        diaSelect.appendChild(opt);
-      });
-
-      inchLens.forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l;
-        opt.innerText = l;
-        lenSelect.appendChild(opt);
-      });
-    } else {
-      // 미터법 일반 규격
-      metricDias.forEach(d => {
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.innerText = "M" + d;
-        if (d === "3") opt.selected = true;
-        diaSelect.appendChild(opt);
-      });
-
-      // 1. 기본 미터 길이 목록 복사
-      let currentLens = [...metricLens];
-
-      // 2. 니켈(SCM-NI) 계열이면서 직경이 3, 4, 5일 때 7과 9 길이 자동 추가
-      const isNickel = selectedMat.includes("니켈") || selectedMat.includes("NI") || selectedMat.includes("ni");
-      const currentDia = String(diaSelect.value || selectedDia || "3");
-      const isSpecialDia = ["3", "4", "5"].includes(currentDia);
-
-      if (isNickel && isSpecialDia) {
-        if (!currentLens.includes("7")) currentLens.push("7");
-        if (!currentLens.includes("9")) currentLens.push("9");
-        currentLens.sort((a, b) => parseFloat(a) - parseFloat(b));
-      }
-
-      // 3. 길이 드롭다운 옵션 생성
-      currentLens.forEach(l => {
-        const opt = document.createElement('option');
-        opt.value = l;
-        opt.innerText = l + "L";
-        if (l === "10") opt.selected = true;
-        lenSelect.appendChild(opt);
-      });
-    }
-
-    onSpecChange();
-  }
-    
-    function selectBagUnit(unit, btn) {
-      selectedBagUnit = unit;
-      document.querySelectorAll('.bag-unit-btn').forEach(b => {
-        b.className = "bag-unit-btn py-1.5 border border-slate-200 bg-white rounded font-medium text-center";
-      });
-      btn.className = "bag-unit-btn py-1.5 border border-amber-600 bg-amber-100 rounded font-bold text-amber-900 text-center";
-      calcTotalQty();
-    }
-
-    function changeBagCount(delta) {
-      const input = document.getElementById('bagCount');
-      let val = parseInt(input.value) || 1;
-      val += delta;
-      if (val < 1) val = 1;
-      input.value = val;
-      calcTotalQty();
-    }
-
-    function calcTotalQty() {
-      const bags = parseInt(document.getElementById('bagCount').value) || 1;
-      const total = selectedBagUnit * bags;
-      document.getElementById('calcQtyResult').innerText = total.toLocaleString() + "개";
-    }
-
-    // 규격 변경 시 시트 검색 및 실시간 재고 확인
-    let stockTimer = null;
-  function onSpecChange() {
-  const diaEl = document.getElementById('diaSelect');
-  const lenEl = document.getElementById('lenSelect');
-  const diaRaw = diaEl ? diaEl.value : '';
-  const len = lenEl ? lenEl.value : '';
-  
-  // 직경 값에서 'M' 또는 공백 제거 (예: "M2" -> "2")
-  const dia = diaRaw ? String(diaRaw).replace(/^M/i, '').trim() : '';
-
-let m = selectedMat || '';
-if (m === "SCM-착색") m = "착색";
-if (m === "천연색") m = "철";
-let h = selectedHead || '';
-const isInch = h.includes("INCH");
-
-  // 스텐(316L)일 경우 시트 품명 규칙 반영
-  if (m.includes("316")) {
-    m = "스텐";
-    if (!h.includes("316")) {
-      h = `${h}(316L)`;
-    }
-  }
-
-  const isWasher = (h === "S/W" || h === "P/W");
-  let fullName = "";
-
-  if (isWasher) {
-    // 와셔류: 길이 없이 (직경)만 조합 -> 예: "무전해 S/W (2)"
-    fullName = `${m} ${h} (${dia})`;
-  } else if (isInch) {
-    fullName = `${m} ${h} (${dia}*${len})`;
-  } else {
-    fullName = `${m} ${h} (${dia}*${len})`;
-  }
-
-  document.getElementById('previewSpecText').innerText = fullName;
-      const badge = document.getElementById('stockBadge');
-      const addBtn = document.getElementById('addCartBtn');
-
-     badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-slate-200 text-slate-700";
-    badge.innerText = "재고 확인중..";
-    addBtn.disabled = true;
-    addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
-    addBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 재고 확인중...`;
-
-    if (stockTimer) clearTimeout(stockTimer);
-    stockTimer = setTimeout(async () => {
-      try {
-        const safeKey = encodeURIComponent(fullName);
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=checkStock&itemKey=${safeKey}`);
-        const data = await res.json();
-        console.log("요청 보낸 품명:", fullName);
-        console.log("서버가 보낸 실제 응답:", data);
-        currentStockData = data;
-        if (data.result === "found" && data.packQty) {
-          updatePackUnitButtons(data.packQty);
-        }
-        if (!data.available && !data.isPackingWaiting) {
-          badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
-          badge.innerText = "품절 (재고 소진)";
-          addBtn.disabled = true;
-          addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
-          addBtn.innerHTML = `<i class="fa-solid fa-ban"></i> 품절된 규격입니다`;
-        } else {
-          addBtn.disabled = false;
-          addBtn.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow transition";
-          addBtn.innerHTML = `<i class="fa-solid fa-cart-plus"></i> 발주 목록에 담기`;
-
-          if (data.isPackingWaiting) {
-            badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800";
-            badge.innerText = "포장대기 (주문가능)";
-          } else {
-            badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800";
-            badge.innerText = "재고 있음";
-          }
-        }
-      } catch (e) {
-        badge.className = "shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-red-100 text-red-700";
-        badge.innerText = "확인 불가";
-        currentStockData = { available: false, stock: 0 };
-        addBtn.disabled = true;
-        addBtn.className = "w-full bg-slate-300 cursor-not-allowed text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5";
-        addBtn.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> 재고 확인 불가`;
-      }
-      }, 300);
-    }
-
-    function addToCart() {
-      if (!currentCompany) {
-        alert("상단에서 등록된 사업자번호 뒷자리를 먼저 조회(인증)해 주세요.");
-        return;
-      }
-
-      const dia = document.getElementById('diaSelect').value;
-      const len = document.getElementById('lenSelect').value;
-      const bags = parseInt(document.getElementById('bagCount').value) || 1;
-      const totalQty = selectedBagUnit * bags;
-      const fullName = `${selectedMat} ${selectedHead} (${dia}*${len})`;
-
-      if (!currentStockData.available) {
-        alert("해당 품목은 현재 재고가 없어 발주가 불가합니다. (현화스너 1551-5456 문의)");
-        return;
-      }
-
-      if (!currentStockData.isPackingWaiting && currentStockData.stock < 900000 && totalQty > currentStockData.stock) {
-        alert(`[재고량 부족]\n현재 주문 가능 수량은 ${currentStockData.stock.toLocaleString()}개입니다.\n선택하신 수량(${totalQty.toLocaleString()}개)보다 부족합니다.\n\n대량 주문 및 납기 확인은 현화스너(1551-5456)로 문의해 주세요.`);
-        return;
-      }
-
-      cart.push({
-        name: fullName,
-        packaging: selectedBagUnit.toLocaleString() + "개입",
-        bags: bags,
-        totalQty: totalQty
-      });
-
-      renderCart();
-    }
-
-    function renderCart() {
-      const container = document.getElementById('cartList');
-      const countSpan = document.getElementById('cartCount');
-      const totalQtySpan = document.getElementById('totalOrderQty');
-
-      countSpan.innerText = cart.length;
-
-      if (cart.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-slate-600 text-xs">담긴 발주 품목이 없습니다.</div>`;
-        totalQtySpan.innerText = "0개";
-        return;
-      }
-
-      let total = 0;
-      let html = "";
-      cart.forEach((item, idx) => {
-        total += item.totalQty;
-        html += `
-          <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-lg">
+    container.innerHTML = filtered.map(p => {
+      const pct = p.totalKg > 0 ? Math.min(100, Math.round((p.allocatedKg / p.totalKg) * 100)) : 0;
+      const isSelected = p.id === selectedParentId;
+      return `
+        <div class="parent-card ${isSelected ? 'selected' : ''}" onclick="selectParent('${p.id}')">
+          <div class="p-top">
             <div>
-              <div class="font-bold text-slate-800">${item.name}</div>
-              <div class="text-[11px] text-slate-600">${item.packaging} × ${item.bags}봉</div>
+              <span class="p-title">${p.item}</span>
+              <span class="p-spec">${p.spec}</span>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="font-extrabold text-blue-900">${item.totalQty.toLocaleString()}개</span>
-              <button onclick="removeCartItem(${idx})" class="text-red-400 hover:text-red-600 px-1">&times;</button>
-            </div>
+            <span class="p-date">${p.date}</span>
           </div>
-        `;
-      });
-
-      container.innerHTML = html;
-      totalQtySpan.innerText = total.toLocaleString() + "개";
-    }
-
-    function removeCartItem(idx) {
-      cart.splice(idx, 1);
-      renderCart();
-    }
-
-    function clearCart() {
-      if (cart.length === 0) return;
-      if (confirm("담긴 발주 품목을 모두 비우시겠습니까?")) {
-        cart = [];
-        renderCart();
-      }
-    }
-
-    async function submitOrder() {
-      if (!currentCompany) {
-        alert("거래처 인증이 필요합니다.");
-        return;
-      }
-      // 견적 및 사진 접수 페이지 자동 입력을 위해 상호명 저장
-    if (currentCompany && currentCompany.name) {
-      localStorage.setItem('hf_client_name', currentCompany.name);
-    }
-      if (cart.length === 0) {
-        alert("발주할 품목을 먼저 담아주세요.");
-        return;
-      }
-
-      const submitBtn = document.getElementById('submitBtn');
-      const originBtnHtml = submitBtn.innerHTML;
-
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 현화스너 전송 중...`;
-
-      const now = new Date();
-      const yy = String(now.getFullYear()).slice(-2);
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const orderId = `${yy}${mm}${dd}-${currentCompany.code}-01`;
-
-      const memo = document.getElementById('orderMemo').value.trim();
-      const totalQuantity = cart.reduce((sum, item) => sum + item.totalQty, 0);
-
-      const payload = {
-        type: "order",
-        orderDate: now.toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }),
-        orderId: orderId,
-        companyName: currentCompany.name,
-        bizNo: currentCompany.bizNo,
-        manager: currentCompany.ceo,
-        phone: currentCompany.phone,
-        address: currentCompany.addr,
-        items: cart,
-        totalQuantity: totalQuantity,
-        memo: memo
-      };
-
-      try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-
-        showReceipt(orderId, payload.orderDate);
-        cart = [];
-        renderCart();
-        document.getElementById('orderMemo').value = "";
-
-      } catch (err) {
-        alert("접수 중 오류가 발생했습니다. 다시 시도해 주세요.\n" + err);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originBtnHtml;
-      }
-    }
-
-    function showReceipt(orderId, dateStr) {
-      document.getElementById('rcpCompany').innerText = currentCompany.name;
-      document.getElementById('rcpCeo').innerText = currentCompany.ceo;
-      document.getElementById('rcpOrderId').innerText = orderId;
-      document.getElementById('rcpOrderDate').innerText = dateStr;
-      document.getElementById('rcpAddr').innerText = currentCompany.addr;
-
-      const itemsContainer = document.getElementById('rcpItemsList');
-      let itemsHtml = "";
-      cart.forEach(item => {
-        itemsHtml += `
-          <div class="flex items-start gap-1.5">
-            <span class="text-blue-600 font-bold">☑</span>
-            <span class="text-slate-800">${item.name} (${item.packaging} × ${item.bags}봉) — <b>${item.totalQty.toLocaleString()}개</b></span>
+          <div class="progress-wrap">
+            <div class="progress-bar ${p.remKg <= 0 ? 'done' : ''}" style="width:${pct}%"></div>
           </div>
-        `;
-      });
-      itemsContainer.innerHTML = itemsHtml;
+          <div class="p-stats">
+            <span>총 ${p.totalKg.toLocaleString()}kg (배분 ${p.allocatedKg.toLocaleString()}kg)</span>
+            <span class="stat-rem ${p.remKg <= 0 ? 'zero' : ''}">
+              ${p.remKg > 0 ? '반제품 잔량 ' + p.remKg.toLocaleString() + 'kg' : '✔ 전량 배분완료'}
+            </span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
 
-      document.getElementById('receiptModal').classList.remove('hidden');
+  function selectParent(id) {
+    selectedParentId = id;
+    renderParents();
+    renderDetail();
+    if (window.innerWidth <= 860) {
+      document.getElementById('detailArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function renderDetail() {
+    const area = document.getElementById('detailArea');
+    const parent = allParents.find(p => p.id === selectedParentId);
+    if (!parent) {
+      area.innerHTML = '<div class="empty-msg">왼쪽에서 품목을 선택해 주세요.</div>';
+      return;
     }
 
-    function closeReceiptModal() {
-      document.getElementById('receiptModal').classList.add('hidden');
-    }
+    const myChildren = allChildren.filter(c => c.parentId === parent.id);
+    const allocatedKg = myChildren.reduce((sum, c) => sum + c.kg, 0);
+    const remKg = parent.totalKg - allocatedKg;
 
-    function copyReceiptText() {
-      const text = document.getElementById('receiptContent').innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("영수증 내용이 클립보드에 복사되었습니다.");
-      });
-    }
-// 시트의 포장단위(G열)와 일치하는 버튼만 활성화하고 나머지는 비활성화하는 함수
-function updatePackUnitButtons(targetQty) {
-  const container = document.getElementById("bagTypeGroup");
-  if (!container) return;
-
-  const buttons = container.querySelectorAll(".bag-unit-btn");
-  let targetBtn = null;
-
-  buttons.forEach(btn => {
-    // 버튼 텍스트에서 숫자만 추출 (예: "2,000" -> 2000)
-    const btnQty = parseInt(btn.innerText.replace(/[^0-9]/g, ''));
-
-    if (btnQty === targetQty) {
-      // 1. 해당 포장단위 버튼: 클릭 가능하도록 활성화
-      btn.disabled = false;
-      btn.style.pointerEvents = "auto";
-      btn.style.opacity = "1";
-      btn.style.textDecoration = "none";
-      targetBtn = btn;
+    let childrenHtml = '';
+    if (myChildren.length === 0) {
+      childrenHtml = '<div class="empty-msg">아직 분할 배분된 후가공 내역이 없습니다.<br>위 초록색 버튼을 눌러 도금·조립 물량을 배분하세요.</div>';
     } else {
-      // 2. 다른 포장단위 버튼: 클릭 완전 차단 + 흐리게 + 취소선 처리
-      btn.disabled = true;
-      btn.style.pointerEvents = "none";
-      btn.style.opacity = "0.3";
-      btn.style.textDecoration = "line-through";
-      btn.className = "bag-unit-btn py-1.5 border border-slate-200 bg-slate-100 rounded font-medium text-center text-slate-400";
+      childrenHtml = myChildren.map(c => {
+        const remainStock = Math.max(0, c.kg - c.usedKg);
+        const isExhausted = c.checked && remainStock === 0;
+        return `
+          <div class="child-item ${c.checked ? (isExhausted ? 'exhausted' : 'checked') : ''}">
+            <div class="c-info">
+              <div class="c-badges">
+                <span class="badge-plating">${c.plating}</span>
+                <span class="badge-washer">${c.washer}</span>
+                <span class="c-kg">${c.kg.toLocaleString()} kg</span>
+              </div>
+              <div class="c-meta">
+                ${!c.checked 
+                  ? '⏳ 후가공 진행중 (미입고)' 
+                  : (isExhausted 
+                      ? `✔ 입고(${c.inDate}) → <b>전량 소진완료 (잔여 0kg)</b>` 
+                      : `✔ 입고(${c.inDate}) | 사용: ${c.usedKg.toLocaleString()}kg → <b style="color:#047857; font-size:13px;">남은재고 ${remainStock.toLocaleString()}kg</b>`
+                    )
+                }
+              </div>
+            </div>
+            <div class="c-actions">
+              <button class="check-btn ${c.checked ? 'done' : ''}" onclick="toggleCheck('${c.id}', ${!c.checked})">
+                ${c.checked ? '✔ 입고됨' : '⬜ 입고체크'}
+              </button>
+              ${c.checked && remainStock > 0 
+                ? `<button class="deduct-btn" onclick="openDeductModal('${c.id}')">- 출고/차감</button>` 
+                : ''
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
     }
-  });
 
-// 해당되는 포장단위 버튼을 자동으로 눌러서 수량 계산까지 바로 반영
-    if (targetBtn && typeof selectBagUnit === "function") {
-      selectBagUnit(targetQty, targetBtn);
+    area.innerHTML = `
+      <div class="detail-header">
+        <h3>${parent.item} <span class="p-spec">${parent.spec}</span></h3>
+        <div class="detail-sub">
+          총 발주: <b>${parent.totalKg.toLocaleString()}kg</b> | 
+          배분합계: <b>${allocatedKg.toLocaleString()}kg</b> | 
+          반제품 잔량: <b style="color:${remKg > 0 ? 'var(--warn)' : 'var(--accent)'};">${remKg.toLocaleString()}kg</b>
+          ${parent.note ? '<br>메모: ' + parent.note : ''}
+        </div>
+      </div>
+      <button class="btn-split" onclick="openChildModal(${remKg})">
+        + 후가공 분할 배분 추가 (반제품 잔량 ${remKg.toLocaleString()}kg)
+      </button>
+      <div>${childrenHtml}</div>
+    `;
+  }
+
+  // 모달 1: 재질 버튼 선택
+  function selectMat(val, btn) {
+    document.querySelectorAll('#matPresets .preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const input = document.getElementById('pMat');
+    if (val === '직접입력') {
+      input.value = '';
+      input.focus();
+    } else {
+      input.value = val;
+    }
+  }
+
+  function openParentModal() {
+    document.getElementById('pHead').value = '';
+    document.getElementById('pSpec').value = '';
+    document.getElementById('pKg').value = '';
+    document.getElementById('pNote').value = '';
+    document.getElementById('parentModal').classList.add('open');
+  }
+
+  function openChildModal(remKg) {
+    const parent = allParents.find(p => p.id === selectedParentId);
+    if (!parent) return;
+    document.getElementById('splitTargetInfo').textContent = `${parent.item} (${parent.spec}) — 반제품 잔량: ${remKg.toLocaleString()}kg`;
+    document.getElementById('maxRemLabel').textContent = `남은 잔량: ${remKg.toLocaleString()}kg`;
+    document.getElementById('cKg').value = remKg > 0 ? remKg : '';
+    document.getElementById('childModal').classList.add('open');
+  }
+
+  function openDeductModal(childId) {
+    const c = allChildren.find(item => item.id === childId);
+    if (!c) return;
+    const remain = Math.max(0, c.kg - c.usedKg);
+    currentDeductMax = remain;
+    document.getElementById('dChildId').value = childId;
+    document.getElementById('deductTargetInfo').innerHTML = 
+      `품목: <b>${c.plating} / ${c.washer}</b><br>현재 남은 재고: <b>${remain.toLocaleString()} kg</b> (총 입고 ${c.kg.toLocaleString()}kg 중 ${c.usedKg.toLocaleString()}kg 사용됨)`;
+    document.getElementById('dUseKg').value = '';
+    document.getElementById('deductModal').classList.add('open');
+  }
+
+  function setAllDeduct() {
+    document.getElementById('dUseKg').value = currentDeductMax;
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  function selectPreset(type, val, btn) {
+    const containerId = type === 'plating' ? 'platingPresets' : 'washerPresets';
+    const inputId = type === 'plating' ? 'cPlating' : 'cWasher';
+    document.querySelectorAll(`#${containerId} .preset-btn`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const input = document.getElementById(inputId);
+    if (val === '직접입력') {
+      input.value = '';
+      input.focus();
+    } else {
+      input.value = val;
+    }
+  }
+
+  async function submitParent() {
+    const date = document.getElementById('pDate').value;
+    const mat = document.getElementById('pMat').value.trim();
+    const head = document.getElementById('pHead').value.trim();
+    const spec = document.getElementById('pSpec').value.trim();
+    const totalKg = Number(document.getElementById('pKg').value);
+    const note = document.getElementById('pNote').value.trim();
+
+    if (!mat || !head || !spec || !totalKg || totalKg <= 0) {
+      alert('재질, 머리모양/품목명, 규격, 총 발주 중량을 모두 입력해 주세요.');
+      return;
+    }
+    const item = `${mat} ${head}`;
+
+    closeModal('parentModal');
+    showLoading('발주 등록 중...');
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'addParent', date, item, spec, totalKg, note })
+      });
+      const json = await res.json();
+      if (json.status === 'success') {
+        selectedParentId = json.id;
+        await loadData();
+      }
+    } catch (e) {
+      alert('저장 중 오류가 발생했습니다.');
+      hideLoading();
+    }
+  }
+
+  async function submitChild() {
+    const parent = allParents.find(p => p.id === selectedParentId);
+    const myChildren = allChildren.filter(c => c.parentId === parent.id);
+    const allocatedKg = myChildren.reduce((sum, c) => sum + c.kg, 0);
+    const remKg = parent.totalKg - allocatedKg;
+
+    const plating = document.getElementById('cPlating').value.trim();
+    const washer = document.getElementById('cWasher').value.trim() || '단품';
+    const kg = Number(document.getElementById('cKg').value);
+
+    if (!plating || !kg || kg <= 0) {
+      alert('후처리와 배분 중량을 입력해 주세요.');
+      return;
+    }
+    if (kg > remKg) {
+      if (!confirm(`입력한 중량(${kg}kg)이 반제품 잔량(${remKg}kg)보다 큽니다. 그래도 배분하시겠습니까?`)) {
+        return;
+      }
+    }
+
+    closeModal('childModal');
+    showLoading('분할 배분 저장 중...');
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'addChild', parentId: parent.id, plating, washer, kg })
+      });
+      await loadData();
+    } catch (e) {
+      alert('저장 중 오류가 발생했습니다.');
+      hideLoading();
+    }
+  }
+
+  async function toggleCheck(childId, nextState) {
+    const target = allChildren.find(c => c.id === childId);
+    if (target) {
+      target.checked = nextState;
+      target.inDate = nextState ? new Date().toISOString().split('T')[0] : '';
+      renderDetail();
+      renderParents();
+    }
+
+    showLoading(nextState ? '입고 완료 처리 중...' : '미입고로 변경 중...');
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'toggleCheck', childId, checked: nextState })
+      });
+    } catch (e) {
+      alert('상태 변경 저장에 실패했습니다.');
+    } finally {
+      hideLoading();
+    }
+  }
+
+  async function submitDeduct() {
+    const childId = document.getElementById('dChildId').value;
+    const addUse = Number(document.getElementById('dUseKg').value);
+    if (!addUse || addUse <= 0) {
+      alert('차감할 중량(kg)을 입력해 주세요.');
+      return;
+    }
+    const target = allChildren.find(c => c.id === childId);
+    if (!target) return;
+
+    const nextUsedKg = Math.min(target.kg, target.usedKg + addUse);
+    target.usedKg = nextUsedKg;
+    closeModal('deductModal');
+    renderDetail();
+    renderParents();
+
+    showLoading('출고/차감 내역 저장 중...');
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'updateUsedKg', childId, usedKg: nextUsedKg })
+      });
+    } catch (e) {
+      alert('차감 저장에 실패했습니다. 새로고침해 주세요.');
+    } finally {
+      hideLoading();
     }
   }
 </script>
+
+</body>
+</html>
