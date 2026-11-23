@@ -111,7 +111,6 @@
     }
     .btn-split:hover { background: #047857; }
 
-    /* 분할 자식 아이템 카드 */
     .child-item {
       display: flex; justify-content: space-between; align-items: center; gap: 10px;
       border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
@@ -152,7 +151,6 @@
     }
     .deduct-btn:hover { background: #f1f5f9; border-color: #475569; }
 
-    /* 모달 창 */
     .modal-backdrop {
       display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
       z-index: 200; align-items: center; justify-content: center; padding: 16px;
@@ -169,7 +167,6 @@
       width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
       font-size: 15px;
     }
-    /* 큰 버튼 그리드 */
     .preset-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px; }
     .preset-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
     .preset-btn {
@@ -215,7 +212,6 @@
   </div>
 
   <div class="main-grid">
-    <!-- 좌측: 모체 생산발주 목록 -->
     <div class="panel">
       <div class="panel-title">
         <span>1. 공장 생산발주 (원소재/반제품)</span>
@@ -226,7 +222,6 @@
       </div>
     </div>
 
-    <!-- 우측: 후가공 배분 및 입고·차감 -->
     <div class="panel">
       <div class="panel-title">
         <span>2. 후가공 분할 배분 & 입고·출고차감</span>
@@ -238,7 +233,6 @@
   </div>
 </div>
 
-<!-- 모달 1: 공장 생산발주 등록 -->
 <div class="modal-backdrop" id="parentModal">
   <div class="modal">
     <h2>공장 생산발주 등록</h2>
@@ -286,7 +280,6 @@
   </div>
 </div>
 
-<!-- 모달 2: 후가공 분할 배분 추가 -->
 <div class="modal-backdrop" id="childModal">
   <div class="modal">
     <h2>후가공 분할 배분 추가</h2>
@@ -329,7 +322,6 @@
   </div>
 </div>
 
-<!-- 모달 3: 입고 물량 출고/포장 차감 -->
 <div class="modal-backdrop" id="deductModal">
   <div class="modal">
     <h2>입고 재고 출고/포장 차감</h2>
@@ -399,7 +391,6 @@
     }
   }
 
-  // 기존 입력했던 머리모양/와샤 자동완성 후보 업데이트
   function updateDatalists() {
     const heads = new Set();
     allParents.forEach(p => {
@@ -549,7 +540,6 @@
     `;
   }
 
-  // 모달 1: 재질 버튼 선택
   function selectMat(val, btn) {
     document.querySelectorAll('#matPresets .preset-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
