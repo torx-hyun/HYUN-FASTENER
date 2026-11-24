@@ -470,6 +470,9 @@
         <button type="button" class="preset-btn" onclick="selectRuleWasherType('SPW', this)">SP/W (스프링+평)</button>
       </div>
       <input type="hidden" id="rWasherType" value="SW" />
+    <div class="form-group" id="rLenWrap" style="display:none;">
+      <label>길이 L (mm) — 단품 기준단중 계산/저장용</label>
+      <input type="number" step="0.5" id="rLen" value="10" inputmode="decimal" oninput="onRuleLenChange()" />
     </div>
     <div class="form-group" id="rSingleInputWrap">
       <label id="rSingleLabel">S/W 와샤 추가무게 (g)</label>
@@ -609,9 +612,9 @@
     return Math.round(w * 10000) / 10000;
   }
 
-  function getCustomBaseUnitWeight(headType, dKey) {
+  function getCustomBaseUnitWeight(headType, dKey, lVal) {
     const h = String(headType || '').trim();
-    const baseKey = h + '__BASE_' + String(dKey).trim();
+    const baseKey = h + '__BASE_' + String(dKey).trim() + '*' + String(lVal).trim();
     if (customWasherRules[baseKey] && customWasherRules[baseKey].swAdd > 0) {
       return Number(customWasherRules[baseKey].swAdd);
     }
@@ -621,7 +624,7 @@
   function calcBaseUnitWeight(specStr, headType) {
     const parsed = parseSpec(specStr);
     if (!parsed) return 0;
-    const customBase = getCustomBaseUnitWeight(headType, parsed.dKey);
+    const customBase = getCustomBaseUnitWeight(headType, parsed.dKey, parsed.l);
     if (customBase !== null) return customBase;
     return calcFormulaBaseWeight(parsed.dKey, parsed.l, headType);
   }
