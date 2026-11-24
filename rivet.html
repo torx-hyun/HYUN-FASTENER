@@ -82,7 +82,11 @@
       display: inline-block; background: #e2e8f0; color: #1e293b;
       padding: 2px 8px; border-radius: 5px; font-size: 13px; font-weight: 700; margin-left: 5px;
     }
-    .p-sub-unit { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .p-sub-unit { font-size: 12px; color: var(--muted); margin-bottom: 6px; line-height: 1.5; }
+    .date-tag {
+      display: inline-block; background: #e0e7ff; color: #1e3a8a;
+      padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 3px;
+    }
     .progress-wrap { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
     .progress-bar { height: 100%; background: var(--primary); }
     .progress-bar.done { background: var(--accent); }
@@ -431,7 +435,7 @@
     <h2>머리모양별 단중(단품 · S/W · SP/W) 설정</h2>
     <div class="calc-box" style="background:#eff6ff; border-color:#93c5fd;">
       <b>와샤없음(단품)</b>, <b>S/W</b>, <b>SP/W</b> 모두 <b>호칭 × 길이</b> 규격별로 각각 저장할 수 있습니다.<br>
-      S/W와 SP/W가 입력되면 <b>평와샤(P/W) 순수 단중(SP/W − S/W)</b>이 자동 역산됩니다.
+      저장 시 <b>몇 월 몇 일에 실측했는지</b> 자동으로 함께 기록됩니다.
     </div>
     <div class="form-group">
       <label>1. 머리모양 선택</label>
@@ -492,13 +496,11 @@
 <script>
   const API_URL = "https://script.google.com/macros/s/AKfycbxHUXkhbanp9-g9rjAleUGKHCm_OQQaLJPwdnz4t3wdHU1YoyFntRlPrOxmny-bJBzp/exec";
 
-  // M1.6 ~ M10 유효경 매핑
   const PITCH_DIA = {
     '1.6': 1.38, '2': 1.75, '2.5': 2.15, '3': 2.7, '4': 3.45,
     '5': 4.35, '6': 5.25, '8': 7.05, '10': 9.2
   };
 
-  // 기본 평와샤(pw) & 스프링와샤(sw) 단중(g) — M1.6 포함
   const DEFAULT_WASHER = {
     '1.6': { pw: 0.0245, sw: 0.0221 },
     '2':   { pw: 0.0397, sw: 0.0363 },
@@ -538,6 +540,17 @@
     return s;
   }
 
+  // "2026-11-24" -> "11월24일 실측" 형태로 보기 쉽게 변환
+  function formatMeasureBadge(dateStr) {
+    const clean = shortDate(dateStr);
+    if (!clean) return '';
+    const parts = clean.split('-');
+    if (parts.length === 3) {
+      return `<span class="date-tag">${Number(parts[1])}월${Number(parts[2])}일 실측</span>`;
+    }
+    return `<span class="date-tag">${clean} 실측</span>`;
+  }
+
   function parseSpec(specStr) {
     const clean = String(specStr || '').toUpperCase().replace(/^M/, '').trim();
     const parts = clean.split(/[*xX×]/);
@@ -566,8 +579,8 @@
     });
     const parsed = parseSpec(specStr);
     if (parsed) {
-      const customBase = getCustomBaseUnitWeight(h, parsed.dKey, parsed.l);
-      if (customBase && customBase > maxW) maxW = customBase;
+      const customBase = getCustomBaseUnitInfo(h, parsed.dKey, parsed.l);
+      if (customBase && customBase.weight > maxW) maxW = customBase.weight;
       const formulaW = calcFormulaBaseWeight(parsed.dKey, parsed.l, h);
       if (formulaW > maxW) maxW = formulaW;
     }
@@ -609,11 +622,14 @@
     return Math.round(w * 10000) / 10000;
   }
 
-  function getCustomBaseUnitWeight(headType, dKey, lVal) {
+  function getCustomBaseUnitInfo(headType, dKey, lVal) {
     const h = String(headType || '').trim();
     const baseKey = h + '__BASE_' + String(dKey).trim() + '*' + String(lVal).trim();
     if (customWasherRules[baseKey] && customWasherRules[baseKey].swAdd > 0) {
-      return Number(customWasherRules[baseKey].swAdd);
+      return {
+        weight: Number(customWasherRules[baseKey].swAdd),
+        unitDate: customWasherRules[baseKey].unitDate || ''
+      };
     }
     return null;
   }
@@ -621,8 +637,8 @@
   function calcBaseUnitWeight(specStr, headType) {
     const parsed = parseSpec(specStr);
     if (!parsed) return 0;
-    const customBase = getCustomBaseUnitWeight(headType, parsed.dKey, parsed.l);
-    if (customBase !== null) return customBase;
+    const customBase = getCustomBaseUnitInfo(headType, parsed.dKey, parsed.l);
+    if (customBase !== null) return customBase.weight;
     return calcFormulaBaseWeight(parsed.dKey, parsed.l, headType);
   }
 
@@ -642,10 +658,11 @@
         spwAdd: (rule.spwAdd !== undefined && rule.spwAdd !== null && Number(rule.spwAdd) > 0) ? Number(rule.spwAdd) : defSpw,
         hasCustomSw: rule.swAdd !== undefined && rule.swAdd !== null && Number(rule.swAdd) > 0,
         hasCustomSpw: rule.spwAdd !== undefined && rule.spwAdd !== null && Number(rule.spwAdd) > 0,
-        isFullSpec: !!customWasherRules[specKey]
+        isFullSpec: !!customWasherRules[specKey],
+        unitDate: rule.unitDate || ''
       };
     }
-    return { swAdd: defSw, spwAdd: defSpw, hasCustomSw: false, hasCustomSpw: false, isFullSpec: false };
+    return { swAdd: defSw, spwAdd: defSpw, hasCustomSw: false, hasCustomSpw: false, isFullSpec: false, unitDate: '' };
   }
 
   function showLoading(msg) {
@@ -710,6 +727,7 @@
       const totalQty = p.unitWeight > 0 ? Math.round((p.totalKg * 1000) / p.unitWeight) : 0;
       const maxW = getMaxParentUnitWeight(p.head, p.spec);
       const maxBadge = maxW > 0 ? ` <span style="color:#dc2626; font-weight:700;">(최대치 ${maxW}g)</span>` : '';
+      const unitDateTag = formatMeasureBadge(p.unitDate);
 
       return `
         <div class="parent-card ${p.id === selectedParentId ? 'selected' : ''}" onclick="selectParent('${p.id}')">
@@ -720,7 +738,7 @@
             </div>
             <span style="font-size:12px; color:var(--muted); white-space:nowrap;">${shortDate(p.date)}</span>
           </div>
-          <div class="p-sub-unit">리벳단중: <b>${p.unitWeight}g</b>${maxBadge} | 총수량: <b>${totalQty.toLocaleString()}개</b></div>
+          <div class="p-sub-unit">리벳단중: <b>${p.unitWeight}g</b>${unitDateTag}${maxBadge} | 총수량: <b>${totalQty.toLocaleString()}개</b></div>
           <div class="progress-wrap"><div class="progress-bar ${p.remKg <= 0 ? 'done' : ''}" style="width:${pct}%"></div></div>
           <div class="p-stats">
             <span>발주 ${p.totalKg.toLocaleString()}kg (배분 ${p.allocatedKg.toLocaleString()}kg)</span>
@@ -750,6 +768,7 @@
     const remKg = Math.max(0, Math.round((p.totalKg - allocatedKg) * 10) / 10);
     const totalQty = p.unitWeight > 0 ? Math.round((p.totalKg * 1000) / p.unitWeight) : 0;
     const remQty = p.unitWeight > 0 ? Math.round((remKg * 1000) / p.unitWeight) : 0;
+    const pUnitDateTag = formatMeasureBadge(p.unitDate);
 
     const maxUnitW = getMaxParentUnitWeight(p.head, p.spec);
     const maxPinHtml = maxUnitW > 0
@@ -768,7 +787,8 @@
     } else if (parsed) {
       const wAdds = getWasherAddWeights(p.head, parsed.dKey, parsed.l);
       const calcPw = Math.round((wAdds.spwAdd - wAdds.swAdd) * 10000) / 10000;
-      pwCalcInfoHtml = `<div class="pw-calc-banner">🧮 와샤기준 역산 (${p.head} ${parsed.dKey}*${parsed.l}): S/W(${wAdds.swAdd}g) · SP/W(${wAdds.spwAdd}g) → <b>평와샤(P/W) 단중 = ${calcPw}g</b></div>`;
+      const ruleDateText = wAdds.unitDate ? ` (${formatMeasureBadge(wAdds.unitDate)})` : '';
+      pwCalcInfoHtml = `<div class="pw-calc-banner">🧮 와샤기준 역산 (${p.head} ${parsed.dKey}*${parsed.l}): S/W(${wAdds.swAdd}g) · SP/W(${wAdds.spwAdd}g) → <b>평와샤(P/W) 단중 = ${calcPw}g</b>${ruleDateText}</div>`;
     }
 
     const worksHtml = myWorks.length === 0
@@ -779,6 +799,7 @@
           const isExhausted = w.done && remainKg === 0;
           const theoryKg = Math.round((w.qty * w.unitWeight / 1000) * 10) / 10;
           const diff = w.done ? Math.round((w.actualKg - theoryKg) * 10) / 10 : 0;
+          const wUnitDateTag = formatMeasureBadge(w.unitDate);
 
           let actionBtns = '';
           if (!w.done) {
@@ -794,6 +815,7 @@
                 <div>
                   <span class="badge b-factory">${w.factory}</span>
                   <span class="badge b-proc">${w.process} (${w.unitWeight}g)</span>
+                  ${wUnitDateTag}
                 </div>
                 <span class="badge b-status ${w.done ? 'done' : ''}">${w.done ? '작업완료' : '작업중'}</span>
               </div>
@@ -825,6 +847,7 @@
           <span>✎ <b>${p.head}</b> 단중(g):</span>
           <input type="number" step="0.0001" id="inlineParentUnitInput" value="${p.unitWeight}" inputmode="decimal" />
           <button type="button" class="btn-save-inline" onclick="saveInlineParentUnit('${p.id}')">저장</button>
+          ${pUnitDateTag}
           ${maxPinHtml}
         </div>
         ${pwCalcInfoHtml}
@@ -845,7 +868,7 @@
       alert('올바른 단중(g)을 입력해 주세요.');
       return;
     }
-    showLoading('리벳 단중 저장 중...');
+    showLoading('리벳 단중 및 실측일 저장 중...');
     try {
       await fetch(API_URL, {
         method: 'POST',
@@ -1064,12 +1087,14 @@
       const p = allParents.find(item => item.id === targetId);
       if (!p) return;
       const maxW = getMaxParentUnitWeight(p.head, p.spec);
-      document.getElementById('euInfo').innerHTML = `<b>[리벳 단품 단중 수정]</b> ${p.mat} ${p.head} (${p.spec})<br>기존 단중: <b>${p.unitWeight} g</b> | 역대 최대치: <b style="color:#dc2626;">${maxW} g</b>`;
+      const dTag = p.unitDate ? ` (${shortDate(p.unitDate)} 실측)` : '';
+      document.getElementById('euInfo').innerHTML = `<b>[리벳 단품 단중 수정]</b> ${p.mat} ${p.head} (${p.spec})<br>기존 단중: <b>${p.unitWeight} g</b>${dTag} | 역대 최대치: <b style="color:#dc2626;">${maxW} g</b>`;
       document.getElementById('euNewUnitW').value = p.unitWeight;
     } else {
       const w = allWorks.find(item => item.id === targetId);
       if (!w) return;
-      document.getElementById('euInfo').innerHTML = `<b>[공장 작업 단중 수정]</b> ${w.factory} · ${w.process}<br>기존 적용단중: <b>${w.unitWeight} g</b>`;
+      const dTag = w.unitDate ? ` (${shortDate(w.unitDate)} 실측)` : '';
+      document.getElementById('euInfo').innerHTML = `<b>[공장 작업 단중 수정]</b> ${w.factory} · ${w.process}<br>기존 적용단중: <b>${w.unitWeight} g</b>${dTag}`;
       document.getElementById('euNewUnitW').value = w.unitWeight;
     }
     document.getElementById('editUnitModal').classList.add('open');
@@ -1084,7 +1109,7 @@
       return;
     }
     closeModal('editUnitModal');
-    showLoading('실측 단중 저장 중...');
+    showLoading('실측 단중 및 날짜 저장 중...');
     try {
       if (type === 'parent') {
         await fetch(API_URL, {
@@ -1105,7 +1130,6 @@
     }
   }
 
-  // 모달 6: 머리모양별 단품(와샤없음) · S/W · SP/W 단독 설정 + 평와샤 자동 역산 (길이 L 항상 지원)
   function openRuleModal() {
     loadRuleFields();
     document.getElementById('ruleModal').classList.add('open');
@@ -1146,9 +1170,9 @@
 
     document.getElementById('rLenWrap').style.display = 'block';
 
-    const customBase = len > 0 ? getCustomBaseUnitWeight(head, dia, len) : null;
+    const customBase = len > 0 ? getCustomBaseUnitInfo(head, dia, len) : null;
     const defaultBase = len > 0 ? calcFormulaBaseWeight(dia, len, head) : 0;
-    const baseW = customBase !== null ? customBase : defaultBase;
+    const baseW = customBase !== null ? customBase.weight : defaultBase;
 
     const wAdds = getWasherAddWeights(head, dia, len);
     const defaultSwTotal = wAdds.isFullSpec && wAdds.hasCustomSw ? wAdds.swAdd : Math.round((baseW + wAdds.swAdd) * 10000) / 10000;
@@ -1177,9 +1201,9 @@
     const wType = document.getElementById('rWasherType').value;
     const inputVal = Number(document.getElementById('rSingleVal').value) || 0;
 
-    const customBase = len > 0 ? getCustomBaseUnitWeight(head, dia, len) : null;
+    const customBase = len > 0 ? getCustomBaseUnitInfo(head, dia, len) : null;
     const defaultBase = len > 0 ? calcFormulaBaseWeight(dia, len, head) : 0;
-    const baseW = customBase !== null ? customBase : defaultBase;
+    const baseW = customBase !== null ? customBase.weight : defaultBase;
 
     const wAdds = getWasherAddWeights(head, dia, len);
     const savedSw = wAdds.isFullSpec && wAdds.hasCustomSw ? wAdds.swAdd : Math.round((baseW + wAdds.swAdd) * 10000) / 10000;
@@ -1190,9 +1214,12 @@
     const curSpw = wType === 'SPW' ? inputVal : savedSpw;
     const autoPw = Math.round((curSpw - curSw) * 10000) / 10000;
 
+    const baseDateTag = customBase && customBase.unitDate ? formatMeasureBadge(customBase.unitDate) : '';
+    const washerDateTag = wAdds.unitDate ? formatMeasureBadge(wAdds.unitDate) : '';
+
     document.getElementById('rPreviewText').innerHTML =
-      `• 적용 규격: <b>${head || '(미입력)'} · ${dia}*${len || '?'}</b> | 단품(와샤없음): <b>${curBase}g</b><br>` +
-      `• S/W 단중: <b>${curSw}g</b> | SP/W 단중: <b>${curSpw}g</b><br>` +
+      `• 적용 규격: <b>${head || '(미입력)'} · ${dia}*${len || '?'}</b> | 단품(와샤없음): <b>${curBase}g</b>${baseDateTag}<br>` +
+      `• S/W 단중: <b>${curSw}g</b> | SP/W 단중: <b>${curSpw}g</b>${washerDateTag}<br>` +
       `• 🧮 <b>평와샤(P/W) 자동 역산 단중: <span style="color:#1e40af; font-size:14px;">${autoPw} g</span></b> (SP/W − S/W)`;
   }
 
@@ -1210,7 +1237,7 @@
     const specKey = `${dia}*${len}`;
 
     if (wType === 'BASE') {
-      showLoading('단품(와샤없음) 기준단중 저장 중...');
+      showLoading('단품(와샤없음) 기준단중 및 실측일 저장 중...');
       try {
         await fetch(API_URL, {
           method: 'POST',
@@ -1227,9 +1254,9 @@
       return;
     }
 
-    const customBase = getCustomBaseUnitWeight(head, dia, len);
+    const customBase = getCustomBaseUnitInfo(head, dia, len);
     const defaultBase = calcFormulaBaseWeight(dia, len, head);
-    const baseW = customBase !== null ? customBase : defaultBase;
+    const baseW = customBase !== null ? customBase.weight : defaultBase;
     const existing = getWasherAddWeights(head, dia, len);
 
     const prevSw = existing.isFullSpec && existing.hasCustomSw ? existing.swAdd : Math.round((baseW + existing.swAdd) * 10000) / 10000;
@@ -1238,7 +1265,7 @@
     const swTotal = wType === 'SW' ? inputVal : prevSw;
     const spwTotal = wType === 'SPW' ? inputVal : prevSpw;
 
-    showLoading(`${wType === 'SW' ? 'S/W' : 'SP/W'} 기준단중 저장 중...`);
+    showLoading(`${wType === 'SW' ? 'S/W' : 'SP/W'} 기준단중 및 실측일 저장 중...`);
     try {
       await fetch(API_URL, {
         method: 'POST',
