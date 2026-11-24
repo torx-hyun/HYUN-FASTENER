@@ -118,7 +118,6 @@
       border-radius: 5px; font-size: 12px; font-weight: 700; cursor: pointer;
     }
 
-    /* 최대치 단중 고정 배지 스타일 */
     .max-pin-badge {
       display: inline-flex; align-items: center; gap: 5px;
       background: #fef2f2; border: 1.5px solid #fca5a5; color: #991b1b;
@@ -318,7 +317,6 @@
         <input type="text" id="pQtyPreview" readonly style="background:#f8fafc; font-weight:700; color:#1e40af;" />
       </div>
     </div>
-    <!-- 역대 최대 단중 고정 표시 영역 -->
     <div id="pMaxPinnedBox" style="margin-bottom:10px; display:none;"></div>
     <div class="form-group">
       <label>비고 (선택)</label>
@@ -365,7 +363,6 @@
         <input type="number" step="0.0001" id="wUnitW" oninput="recalcWorkPreview()" />
       </div>
     </div>
-    <!-- 공정별 역대 최대 단중 고정 배지 -->
     <div id="wMaxPinnedBox" style="margin-bottom:10px; display:none;"></div>
     <div id="wCalcPreview" class="calc-box" style="background:#eff6ff; border-color:#93c5fd;"></div>
     <div class="modal-actions">
@@ -526,6 +523,21 @@
     loadData();
   };
 
+  // 날짜 표기 깔끔하게 정리 (YYYY-MM-DD)
+  function shortDate(dateStr) {
+    if (!dateStr) return '';
+    const s = String(dateStr);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    return s;
+  }
+
   function parseSpec(specStr) {
     const clean = String(specStr || '').toUpperCase().replace(/^M/, '').trim();
     const parts = clean.split(/[*xX×]/);
@@ -541,7 +553,6 @@
     return p ? `${p.dKey}*${p.l}` : String(specStr || '').trim().toUpperCase();
   }
 
-  // 역대 동일 품목(머리모양 + 규격)의 최대 리벳 단품 단중(MAX) 조회
   function getMaxParentUnitWeight(headType, specStr) {
     const h = String(headType || '').trim();
     const sKey = normalizeSpecKey(specStr);
@@ -563,7 +574,6 @@
     return Math.round(maxW * 10000) / 10000;
   }
 
-  // 역대 동일 품목(머리모양 + 규격 + 공정)의 최대 조립 단중(MAX) 조회
   function getMaxWorkUnitWeight(headType, specStr, proc) {
     const h = String(headType || '').trim();
     const sKey = normalizeSpecKey(specStr);
@@ -675,11 +685,11 @@
       const myWorks = allWorks.filter(w => w.parentId === p.id);
       const allocatedKg = myWorks.reduce((sum, w) => sum + w.inputKg, 0);
       const remKg = Math.max(0, Math.round((p.totalKg - allocatedKg) * 10) / 10);
-      const remQtyK = p.unitWeight > 0 ? Math.round((remKg * 1000 / p.unitWeight) / 1000) : 0;
+      const remQty = p.unitWeight > 0 ? Math.round((remKg * 1000) / p.unitWeight) : 0;
       const hasWorking = myWorks.some(w => !w.done);
       const doneStockTotal = myWorks.reduce((sum, w) => w.done ? sum + Math.max(0, w.actualKg - w.usedKg) : sum, 0);
       const hasDoneAny = myWorks.some(w => w.done);
-      return { ...p, allocatedKg, remKg, remQtyK, hasWorking, doneStockTotal, hasDoneAny };
+      return { ...p, allocatedKg, remKg, remQty, hasWorking, doneStockTotal, hasDoneAny };
     });
 
     if (currentFilter === 'rem') filtered = filtered.filter(p => p.remKg > 0);
@@ -694,7 +704,7 @@
 
     container.innerHTML = filtered.map(p => {
       const pct = p.totalKg > 0 ? Math.min(100, Math.round((p.allocatedKg / p.totalKg) * 100)) : 0;
-      const totalQtyK = p.unitWeight > 0 ? Math.round((p.totalKg * 1000 / p.unitWeight) / 1000) : 0;
+      const totalQty = p.unitWeight > 0 ? Math.round((p.totalKg * 1000) / p.unitWeight) : 0;
       const maxW = getMaxParentUnitWeight(p.head, p.spec);
       const maxBadge = maxW > 0 ? ` <span style="color:#dc2626; font-weight:700;">(최대치 ${maxW}g)</span>` : '';
 
@@ -705,13 +715,13 @@
               <span class="p-title">${p.mat} ${p.head}</span>
               <span class="p-spec">${p.spec}</span>
             </div>
-            <span style="font-size:12px; color:var(--muted);">${p.date}</span>
+            <span style="font-size:12px; color:var(--muted); white-space:nowrap;">${shortDate(p.date)}</span>
           </div>
-          <div class="p-sub-unit">리벳단중: <b>${p.unitWeight}g</b>${maxBadge} | 총수량: <b>${totalQtyK.toLocaleString()}천개</b></div>
+          <div class="p-sub-unit">리벳단중: <b>${p.unitWeight}g</b>${maxBadge} | 총수량: <b>${totalQty.toLocaleString()}개</b></div>
           <div class="progress-wrap"><div class="progress-bar ${p.remKg <= 0 ? 'done' : ''}" style="width:${pct}%"></div></div>
           <div class="p-stats">
             <span>발주 ${p.totalKg.toLocaleString()}kg (배분 ${p.allocatedKg.toLocaleString()}kg)</span>
-            <span class="stat-rem ${p.remKg <= 0 ? 'zero' : ''}">${p.remKg > 0 ? '미배분 리벳 ' + p.remKg.toLocaleString() + 'kg (약 ' + p.remQtyK.toLocaleString() + '천개)' : '✔ 전량 배분완료'}</span>
+            <span class="stat-rem ${p.remKg <= 0 ? 'zero' : ''}">${p.remKg > 0 ? '미배분 리벳 ' + p.remKg.toLocaleString() + 'kg (약 ' + p.remQty.toLocaleString() + '개)' : '✔ 전량 배분완료'}</span>
             ${p.hasDoneAny ? `<div class="stat-factory-rem">📦 공장 작업완료 남은잔량: ${Math.round(p.doneStockTotal * 10)/10} kg</div>` : ''}
           </div>
         </div>
@@ -735,10 +745,9 @@
     const myWorks = allWorks.filter(w => w.parentId === p.id);
     const allocatedKg = myWorks.reduce((sum, w) => sum + w.inputKg, 0);
     const remKg = Math.max(0, Math.round((p.totalKg - allocatedKg) * 10) / 10);
-    const totalQtyK = p.unitWeight > 0 ? Math.round((p.totalKg * 1000 / p.unitWeight) / 1000) : 0;
-    const remQtyK = p.unitWeight > 0 ? Math.round((remKg * 1000 / p.unitWeight) / 1000) : 0;
+    const totalQty = p.unitWeight > 0 ? Math.round((p.totalKg * 1000) / p.unitWeight) : 0;
+    const remQty = p.unitWeight > 0 ? Math.round((remKg * 1000) / p.unitWeight) : 0;
 
-    // 최대치 단중 고정 표시 배지
     const maxUnitW = getMaxParentUnitWeight(p.head, p.spec);
     const maxPinHtml = maxUnitW > 0
       ? `<span class="max-pin-badge">📌 최대치 고정: <b>${maxUnitW}g</b> <button type="button" class="btn-apply-max" onclick="applyMaxParentUnit('${p.id}', ${maxUnitW})">최대치 적용</button></span>`
@@ -763,7 +772,7 @@
       ? '<div class="empty-msg">아직 공장에 배분된 작업이 없습니다.<br>위 버튼을 눌러 화신 · 대성 · 하늘 공장에 배분하세요.</div>'
       : myWorks.map(w => {
           const remainKg = Math.max(0, Math.round((w.actualKg - w.usedKg) * 10) / 10);
-          const remainQtyK = w.unitWeight > 0 ? Math.round((remainKg * 1000 / w.unitWeight) / 1000) : 0;
+          const remainQty = w.unitWeight > 0 ? Math.round((remainKg * 1000) / w.unitWeight) : 0;
           const isExhausted = w.done && remainKg === 0;
           const theoryKg = Math.round((w.qty * w.unitWeight / 1000) * 10) / 10;
           const diff = w.done ? Math.round((w.actualKg - theoryKg) * 10) / 10 : 0;
@@ -786,10 +795,10 @@
                 <span class="badge b-status ${w.done ? 'done' : ''}">${w.done ? '작업완료' : '작업중'}</span>
               </div>
               <div class="w-body">
-                • 리벳 투입: <b>${w.inputKg.toLocaleString()}kg</b> → 작업수량: <b>${Math.round(w.qty / 1000).toLocaleString()}천개</b> (와샤포함 이론중량 <b>${theoryKg}kg</b>)<br>
+                • 리벳 투입: <b>${w.inputKg.toLocaleString()}kg</b> → 작업수량: <b>${Number(w.qty).toLocaleString()}개</b> (와샤포함 이론중량 <b>${theoryKg}kg</b>)<br>
                 ${w.done 
-                  ? `• 완료 실중량(${w.doneDate}): <b>${w.actualKg.toLocaleString()}kg</b> (이론대비 <span class="${diff >= 0 ? 'diff-plus' : 'diff-minus'}">${diff >= 0 ? '+' + diff : diff}kg</span>)<br>
-                     <span class="remain-pill ${isExhausted ? 'zero' : ''}">남은잔량: ${remainKg} kg (약 ${remainQtyK.toLocaleString()}천개) ${isExhausted ? '[소진완료]' : ''}</span>` 
+                  ? `• 완료 실중량(${shortDate(w.doneDate)}): <b>${w.actualKg.toLocaleString()}kg</b> (이론대비 <span class="${diff >= 0 ? 'diff-plus' : 'diff-minus'}">${diff >= 0 ? '+' + diff : diff}kg</span>)<br>
+                     <span class="remain-pill ${isExhausted ? 'zero' : ''}">남은잔량: ${remainKg} kg (약 ${remainQty.toLocaleString()}개) ${isExhausted ? '[소진완료]' : ''}</span>` 
                   : '⏳ 공장에서 작업 진행중'
                 }
               </div>
@@ -805,8 +814,8 @@
           <button class="btn-edit-unit" onclick="openEditUnitModal('parent', '${p.id}')">✎ 팝업 수정</button>
         </div>
         <div class="detail-sub">
-          총 리벳발주: <b>${p.totalKg.toLocaleString()}kg</b> (약 ${totalQtyK.toLocaleString()}천개)<br>
-          배분합계: <b>${allocatedKg.toLocaleString()}kg</b> | 미배분 리벳잔량: <b style="color:${remKg > 0 ? 'var(--warn)' : 'var(--accent)'};">${remKg.toLocaleString()}kg (약 ${remQtyK.toLocaleString()}천개)</b>
+          총 리벳발주: <b>${p.totalKg.toLocaleString()}kg</b> (약 ${totalQty.toLocaleString()}개)<br>
+          배분합계: <b>${allocatedKg.toLocaleString()}kg</b> | 미배분 리벳잔량: <b style="color:${remKg > 0 ? 'var(--warn)' : 'var(--accent)'};">${remKg.toLocaleString()}kg (약 ${remQty.toLocaleString()}개)</b>
           ${p.note ? '<br>비고: ' + p.note : ''}
         </div>
         <div class="inline-unit-edit">
@@ -822,7 +831,6 @@
     `;
   }
 
-  // 최대치 단중 바로 적용 및 저장
   async function applyMaxParentUnit(parentId, maxW) {
     document.getElementById('inlineParentUnitInput').value = maxW;
     await saveInlineParentUnit(parentId);
@@ -874,7 +882,6 @@
     const head = document.getElementById('pHead').value;
     const maxW = getMaxParentUnitWeight(head, spec);
     const baseW = calcBaseUnitWeight(spec, head);
-    // 역대 최대치 기록이 있으면 최대치를 기본 추천값으로 세팅하여 수정 필요 없게 처리
     const applyW = maxW > 0 ? maxW : baseW;
     if (applyW > 0) document.getElementById('pUnitW').value = applyW;
 
@@ -892,7 +899,7 @@
     const kg = Number(document.getElementById('pKg').value) || 0;
     const w = Number(document.getElementById('pUnitW').value) || 0;
     const qty = w > 0 ? Math.round((kg * 1000) / w) : 0;
-    document.getElementById('pQtyPreview').value = qty > 0 ? Math.round(qty / 1000).toLocaleString() + ' 천개' : '-';
+    document.getElementById('pQtyPreview').value = qty > 0 ? qty.toLocaleString() + ' 개' : '-';
   }
 
   function openParentModal() {
@@ -974,7 +981,7 @@
     const afterKg = Math.round((qty * newW / 1000) * 10) / 10;
     const diff = Math.round((afterKg - inKg) * 10) / 10;
     document.getElementById('wCalcPreview').innerHTML =
-      `• 리벳 투입수량: <b>${Math.round(qty/1000).toLocaleString()}천개</b> (${qty.toLocaleString()}개)<br>` +
+      `• 리벳 투입수량: <b>${qty.toLocaleString()}개</b><br>` +
       `• 조립 후 예상중량: <b>${afterKg} kg</b> (와샤 무게로 <b>${diff >= 0 ? '+' + diff : diff}kg</b> 변동)`;
   }
 
@@ -1089,7 +1096,6 @@
     }
   }
 
-  // 모달 6: 머리모양별 단품(와샤없음) · S/W · SP/W 단독 설정 + 평와샤 자동 역산
   function openRuleModal() {
     loadRuleFields();
     document.getElementById('ruleModal').classList.add('open');
