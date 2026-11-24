@@ -1131,18 +1131,25 @@
     loadRuleFields();
   }
 
+ function onRuleLenChange() {
+    loadRuleFields();
+  }
+
   function loadRuleFields() {
     const head = document.getElementById('rHead').value.trim();
     const dia = document.getElementById('rDia').value;
+    const len = Number(document.getElementById('rLen').value) || 0;
     const wType = document.getElementById('rWasherType').value;
     const wAdds = getWasherAddWeights(head, dia);
-    const customBase = getCustomBaseUnitWeight(head, dia);
-    const defaultBase = calcFormulaBaseWeight(dia, 10, head);
+
+    document.getElementById('rLenWrap').style.display = (wType === 'BASE') ? 'block' : 'none';
 
     if (wType === 'BASE') {
-      document.getElementById('rSingleLabel').textContent = `와샤없음 리벳 단품 기준단중 (g) — ${head || '선택품목'} M${dia}`;
+      const customBase = len > 0 ? getCustomBaseUnitWeight(head, dia, len) : null;
+      const defaultBase = len > 0 ? calcFormulaBaseWeight(dia, len, head) : 0;
+      document.getElementById('rSingleLabel').textContent = `와샤없음 단품 단중 (g) — ${head || '선택품목'} ${dia}*${len || '?'}`;
       document.getElementById('rSingleVal').value = customBase !== null ? customBase : defaultBase;
-      document.getElementById('rSaveBtn').textContent = '단품(와샤없음) 기준 단중 저장';
+      document.getElementById('rSaveBtn').textContent = `단품(${dia}*${len}) 기준 단중 저장`;
     } else if (wType === 'SW') {
       document.getElementById('rSingleLabel').textContent = `S/W 와샤 추가무게 (g) — ${head || '선택품목'} M${dia}`;
       document.getElementById('rSingleVal').value = wAdds.swAdd;
@@ -1158,17 +1165,18 @@
   function updateRulePreviewOnly() {
     const head = document.getElementById('rHead').value.trim();
     const dia = document.getElementById('rDia').value;
+    const len = Number(document.getElementById('rLen').value) || 0;
     const wType = document.getElementById('rWasherType').value;
     const inputVal = Number(document.getElementById('rSingleVal').value) || 0;
     const wAdds = getWasherAddWeights(head, dia);
-    const customBase = getCustomBaseUnitWeight(head, dia);
+    const customBase = len > 0 ? getCustomBaseUnitWeight(head, dia, len) : null;
 
     const curBase = wType === 'BASE' ? inputVal : customBase;
     const curSw = wType === 'SW' ? inputVal : wAdds.swAdd;
     const curSpw = wType === 'SPW' ? inputVal : wAdds.spwAdd;
     const autoPw = Math.round((curSpw - curSw) * 10000) / 10000;
 
-    const baseText = curBase ? `<b>${curBase}g</b> <span style="color:#059669;">(단품설정됨)</span>` : '공식 자동계산';
+    const baseText = curBase ? `<b>${curBase}g</b> (${dia}*${len})` : '길이 입력 시 자동계산';
 
     document.getElementById('rPreviewText').innerHTML =
       `• 적용 대상: <b>${head || '(미입력)'} · M${dia}</b> | 단품(와샤없음): ${baseText}<br>` +
@@ -1180,6 +1188,7 @@
   async function submitWasherRule() {
     const head = document.getElementById('rHead').value.trim();
     const dia = document.getElementById('rDia').value;
+    const len = Number(document.getElementById('rLen').value);
     const wType = document.getElementById('rWasherType').value;
     const inputVal = Number(document.getElementById('rSingleVal').value);
     if (!head) {
@@ -1188,6 +1197,10 @@
     }
 
     if (wType === 'BASE') {
+      if (!len || len <= 0) {
+        alert('길이 L (mm)을 입력해 주세요.');
+        return;
+      }
       if (!inputVal || inputVal <= 0) {
         alert('올바른 단품 단중(g)을 입력해 주세요.');
         return;
@@ -1196,11 +1209,11 @@
       try {
         await fetch(API_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'saveWasherRule', head: head + '__BASE', dia, swAdd: inputVal, spwAdd: 0 })
+          body: JSON.stringify({ action: 'saveWasherRule', head: head + '__BASE', dia: `${dia}*${len}`, swAdd: inputVal, spwAdd: 0 })
         });
         await loadData();
         loadRuleFields();
-        alert(`${head} (M${dia}) 단품(와샤없음) 기준 단중이 ${inputVal}g으로 저장되었습니다.`);
+        alert(`${head} (${dia}*${len}) 단품(와샤없음) 기준 단중이 ${inputVal}g으로 저장되었습니다.`);
       } catch (e) {
         alert('저장 중 오류가 발생했습니다.');
       } finally {
