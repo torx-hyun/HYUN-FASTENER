@@ -87,10 +87,6 @@
       display: inline-block; background: #e0e7ff; color: #1e3a8a;
       padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-left: 3px;
     }
-    .source-tag {
-      display: inline-block; background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
-      padding: 2px 7px; border-radius: 5px; font-size: 12px; font-weight: 700; margin-top: 4px;
-    }
     .progress-wrap { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
     .progress-bar { height: 100%; background: var(--primary); }
     .progress-bar.done { background: var(--accent); }
@@ -163,12 +159,19 @@
     .work-card.exhausted { border-color: #cbd5e1; background: #f8fafc; opacity: 0.78; }
 
     .w-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .badge { padding: 3px 9px; border-radius: 6px; font-size: 13px; font-weight: 700; }
+    .badge { padding: 3px 9px; border-radius: 6px; font-size: 13px; font-weight: 700; display: inline-block; }
     .b-factory { background: #1e293b; color: #fff; }
+    .b-factory-sub { background: #475569; color: #fff; }
     .b-proc { background: #dbeafe; color: #1e40af; }
-    .b-proc.rivet { background: #e0e7ff; color: #3730a3; }
+    .b-proc.rivet { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
     .b-status { background: #fef3c7; color: #92400e; }
     .b-status.done { background: #059669; color: #fff; }
+
+    .route-banner {
+      display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 4px 8px; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;
+    }
 
     .w-body { font-size: 13px; line-height: 1.6; color: #1e293b; margin-bottom: 8px; }
     .diff-plus { color: #1d4ed8; font-weight: 700; }
@@ -181,9 +184,11 @@
 
     .w-actions { display: flex; gap: 6px; flex-wrap: wrap; }
     .act-btn {
-      padding: 8px 13px; border-radius: 7px; border: none; font-size: 13px; font-weight: 700; cursor: pointer;
+      padding: 8px 12px; border-radius: 7px; border: none; font-size: 13px; font-weight: 700; cursor: pointer;
     }
     .btn-complete { background: #d97706; color: #fff; }
+    .btn-route { background: #eff6ff; border: 1.5px solid #3b82f6; color: #1d4ed8; }
+    .btn-route:hover { background: #dbeafe; }
     .btn-deduct { background: #fff; border: 1px solid #64748b; color: #1e293b; }
 
     .modal-backdrop {
@@ -198,14 +203,9 @@
     .modal h2 { margin: 0 0 14px 0; font-size: 18px; }
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 5px; color: #334155; }
-    .form-group input, .form-group select {
-      width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; background: #fff;
+    .form-group input {
+      width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px;
     }
-    .source-select-box {
-      background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 9px;
-      padding: 10px 12px; margin-bottom: 12px;
-    }
-    .source-select-box label { color: #92400e; margin-bottom: 6px; }
     .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .preset-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 6px; }
     .preset-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px; }
@@ -349,7 +349,7 @@
     <h2>공장 작업 배분 (화신 · 대성 · 하늘)</h2>
     <div id="wTargetInfo" class="calc-box"></div>
     <div class="form-group">
-      <label>1. 작업 공장 선택</label>
+      <label>작업 공장 선택</label>
       <div class="preset-grid-3" id="factoryPresets">
         <button type="button" class="preset-btn active" onclick="selectBtn('factoryPresets', 'wFactory', '화신금속', this)">화신금속</button>
         <button type="button" class="preset-btn" onclick="selectBtn('factoryPresets', 'wFactory', '대성테크', this)">대성테크</button>
@@ -358,23 +358,15 @@
       <input type="hidden" id="wFactory" value="화신금속" />
     </div>
     <div class="form-group">
-      <label>2. 공정 선택 (리벳 단조 vs 쌤스·로링 후공정)</label>
+      <label>공정 선택 (미정이면 먼저 '리벳'으로 배분 후 나중에 변경 가능)</label>
       <div class="preset-grid-4" id="procPresets">
-        <button type="button" class="preset-btn active" onclick="selectProc('리벳', this)">리벳 (1차단조)</button>
+        <button type="button" class="preset-btn active" onclick="selectProc('리벳', this)">리벳</button>
         <button type="button" class="preset-btn" onclick="selectProc('SP/W', this)">SP/W</button>
         <button type="button" class="preset-btn" onclick="selectProc('S/W', this)">S/W</button>
         <button type="button" class="preset-btn" onclick="selectProc('로링', this)">로링</button>
       </div>
-      <input type="text" id="wProc" value="리벳" oninput="updateRivetSourceBox()" placeholder="직접 입력 가능" />
+      <input type="text" id="wProc" value="리벳" placeholder="직접 입력 가능" />
     </div>
-
-    <!-- 후공정(SP/W, S/W, 로링) 선택 시 나타나는 리벳 출처 연동 영역 -->
-    <div class="source-select-box" id="wSourceBox" style="display:none;">
-      <label>3. 리벳 반제품 출처 (화신 단조분 연동 / 신규 직접배분)</label>
-      <select id="wRivetSourceSelect" onchange="onRivetSourceChange()"></select>
-      <div id="wSourceHint" style="font-size:12px; color:#78350f; margin-top:5px; line-height:1.4;"></div>
-    </div>
-
     <div class="row-2">
       <div class="form-group">
         <label>리벳 투입중량 (kg)</label>
@@ -390,6 +382,56 @@
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('workModal')">취소</button>
       <button class="btn-submit" onclick="submitWork()">공장 배분 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 모달 2-2: 기존 작업의 2차 공정 및 공장 변경/이관 (새로 추가됨) -->
+<div class="modal-backdrop" id="routeModal">
+  <div class="modal">
+    <h2>🔄 2차 작업 공정 · 공장 변경/이관</h2>
+    <div id="rtOriginInfo" class="calc-box" style="background:#fffbeb; border-color:#fcd34d;"></div>
+    <input type="hidden" id="rtWorkId" />
+    <input type="hidden" id="rtOrigFactory" />
+    <input type="hidden" id="rtMaxKg" />
+
+    <div class="form-group">
+      <label>1. 2차 작업 진행 공장 (그대로 진행하거나 타공장으로 이동)</label>
+      <div class="preset-grid-3" id="rtFactoryPresets">
+        <button type="button" class="preset-btn" onclick="selectRtFactory('화신금속', this)">화신금속</button>
+        <button type="button" class="preset-btn" onclick="selectRtFactory('대성테크', this)">대성테크</button>
+        <button type="button" class="preset-btn" onclick="selectRtFactory('하늘테크', this)">하늘테크</button>
+      </div>
+      <input type="hidden" id="rtNewFactory" />
+    </div>
+
+    <div class="form-group">
+      <label>2. 변경할 공정 선택</label>
+      <div class="preset-grid-4" id="rtProcPresets">
+        <button type="button" class="preset-btn" onclick="selectRtProc('리벳', this)">리벳만</button>
+        <button type="button" class="preset-btn" onclick="selectRtProc('SP/W', this)">SP/W</button>
+        <button type="button" class="preset-btn" onclick="selectRtProc('S/W', this)">S/W</button>
+        <button type="button" class="preset-btn" onclick="selectRtProc('로링', this)">로링</button>
+      </div>
+      <input type="text" id="rtNewProc" oninput="recalcRoutePreview()" placeholder="공정 직접 입력 가능" />
+    </div>
+
+    <div class="row-2">
+      <div class="form-group">
+        <label>변경/이동할 중량 (kg)</label>
+        <input type="number" step="0.1" id="rtMoveKg" inputmode="decimal" oninput="recalcRoutePreview()" />
+      </div>
+      <div class="form-group">
+        <label>변경 후 적용단중 (g)</label>
+        <input type="number" step="0.0001" id="rtNewUnitW" oninput="recalcRoutePreview()" />
+      </div>
+    </div>
+
+    <div id="rtSummaryBox" class="calc-box" style="background:#eff6ff; border-color:#93c5fd;"></div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('routeModal')">취소</button>
+      <button class="btn-submit" onclick="submitRouteChange()">변경 내용 저장</button>
     </div>
   </div>
 </div>
@@ -682,19 +724,23 @@
     return { swAdd: defSw, spwAdd: defSpw, hasCustomSw: false, hasCustomSpw: false, isFullSpec: false, unitDate: '' };
   }
 
-  // [핵심] 발주건별 신규 리벳 배분 합계 계산 (다른 공장 리벳을 넘겨받은 후공정 건은 제외)
-  function getDirectAllocatedKg(myWorks) {
-    return myWorks
-      .filter(w => !w.rivetSource || w.rivetSource === '신규발주')
-      .reduce((sum, w) => sum + Number(w.inputKg || 0), 0);
-  }
-
-  // [핵심] 1차 리벳 단조 작업건에서 이미 다른 공장으로 넘겨준 중량 계산
-  function getMovedOutKg(rivetWork, myWorks) {
-    const bySourceProp = myWorks
-      .filter(w => w.rivetSource && w.rivetSource !== '신규발주' && w.rivetSource === rivetWork.factory)
-      .reduce((sum, w) => sum + Number(w.inputKg || 0), 0);
-    return Math.max(Number(rivetWork.usedKg || 0), bySourceProp);
+  function calcProcUnitWeight(parent, proc) {
+    const parsed = parseSpec(parent.spec);
+    let calcW = parent.unitWeight;
+    if (parsed && proc !== '리벳' && proc !== '로링') {
+      const wAdds = getWasherAddWeights(parent.head, parsed.dKey, parsed.l);
+      if (wAdds.isFullSpec) {
+        if (proc === 'S/W' && wAdds.hasCustomSw) calcW = wAdds.swAdd;
+        else if (proc === 'SP/W' && wAdds.hasCustomSpw) calcW = wAdds.spwAdd;
+      } else {
+        let addW = 0;
+        if (proc === 'S/W') addW = wAdds.swAdd;
+        else if (proc === 'SP/W') addW = wAdds.spwAdd;
+        calcW = Math.round((parent.unitWeight + addW) * 10000) / 10000;
+      }
+    }
+    const histMaxW = getMaxWorkUnitWeight(parent.head, parent.spec, proc);
+    return Math.max(calcW, histMaxW);
   }
 
   function showLoading(msg) {
@@ -735,7 +781,7 @@
     const container = document.getElementById('parentList');
     let filtered = allParents.map(p => {
       const myWorks = allWorks.filter(w => w.parentId === p.id);
-      const allocatedKg = getDirectAllocatedKg(myWorks);
+      const allocatedKg = myWorks.reduce((sum, w) => sum + Number(w.inputKg || 0), 0);
       const remKg = Math.max(0, Math.round((p.totalKg - allocatedKg) * 10) / 10);
       const remQty = p.unitWeight > 0 ? Math.round((remKg * 1000) / p.unitWeight) : 0;
       const hasWorking = myWorks.some(w => !w.done);
@@ -796,7 +842,7 @@
       return;
     }
     const myWorks = allWorks.filter(w => w.parentId === p.id);
-    const allocatedKg = getDirectAllocatedKg(myWorks);
+    const allocatedKg = myWorks.reduce((sum, w) => sum + Number(w.inputKg || 0), 0);
     const remKg = Math.max(0, Math.round((p.totalKg - allocatedKg) * 10) / 10);
     const totalQty = p.unitWeight > 0 ? Math.round((p.totalKg * 1000) / p.unitWeight) : 0;
     const remQty = p.unitWeight > 0 ? Math.round((remKg * 1000) / p.unitWeight) : 0;
@@ -826,8 +872,8 @@
     const worksHtml = myWorks.length === 0
       ? '<div class="empty-msg">아직 공장에 배분된 작업이 없습니다.<br>위 버튼을 눌러 화신 · 대성 · 하늘 공장에 배분하세요.</div>'
       : myWorks.map(w => {
-          const isRivetProc = w.process === '리벳';
-          const isTransferred = w.rivetSource && w.rivetSource !== '신규발주';
+          const isRivetOnly = w.process === '리벳';
+          const hasDifferentRivetFactory = w.rivetSource && w.rivetSource !== '신규발주' && w.rivetSource !== w.factory;
           const remainKg = Math.max(0, Math.round((w.actualKg - w.usedKg) * 10) / 10);
           const remainQty = w.unitWeight > 0 ? Math.round((remainKg * 1000) / w.unitWeight) : 0;
           const isExhausted = w.done && remainKg === 0;
@@ -835,20 +881,34 @@
           const diff = w.done ? Math.round((w.actualKg - theoryKg) * 10) / 10 : 0;
           const wUnitDateTag = formatMeasureBadge(w.unitDate);
 
-          // 1차 리벳 작업건일 경우, 후공정 공장으로 넘어간 물량 계산
-          let rivetFlowInfo = '';
-          if (isRivetProc) {
-            const movedKg = getMovedOutKg(w, myWorks);
-            const baseRivetKg = w.done ? w.actualKg : w.inputKg;
-            const leftRivetKg = Math.max(0, Math.round((baseRivetKg - movedKg) * 10) / 10);
-            if (movedKg > 0) {
-              rivetFlowInfo = `<br>🔄 후공정 이동: <b>${movedKg.toLocaleString()}kg</b> 출고됨 → 현재 보유 리벳: <b style="color:#1e40af;">${leftRivetKg.toLocaleString()}kg</b>`;
+          // 헷갈리지 않게 공장 흐름 배지 구성
+          let headerBadgesHtml = '';
+          let routeBannerHtml = '';
+
+          if (hasDifferentRivetFactory) {
+            headerBadgesHtml = `
+              <span class="badge b-factory-sub">${w.rivetSource} 리벳</span>
+              <span style="font-weight:800; color:#1e40af;">➔</span>
+              <span class="badge b-factory">${w.factory}</span>
+              <span class="badge b-proc">${w.process} (${w.unitWeight}g)</span>
+              ${wUnitDateTag}
+            `;
+            routeBannerHtml = `<div class="route-banner">🔄 <b>${w.rivetSource}</b>에서 리벳 단조 후 ➔ <b>${w.factory}</b>에서 <b>${w.process}</b> 2차 작업</div>`;
+          } else {
+            headerBadgesHtml = `
+              <span class="badge b-factory">${w.factory}</span>
+              <span class="badge b-proc ${isRivetOnly ? 'rivet' : ''}">${isRivetOnly ? '리벳만 (2차 미정)' : w.process} (${w.unitWeight}g)</span>
+              ${wUnitDateTag}
+            `;
+            if (!isRivetOnly && w.rivetSource === w.factory) {
+              routeBannerHtml = `<div class="route-banner">🏭 <b>${w.factory}</b>에서 리벳 + <b>${w.process}</b> 일괄 진행</div>`;
             }
           }
 
           let actionBtns = '';
           if (!w.done) {
             actionBtns += `<button class="act-btn btn-complete" onclick="openCompModal('${w.id}')">✔ 작업완료 (실중량 입력)</button>`;
+            actionBtns += `<button class="act-btn btn-route" onclick="openRouteModal('${w.id}')">🔄 공정·공장 변경</button>`;
           } else if (remainKg > 0) {
             actionBtns += `<button class="act-btn btn-deduct" onclick="openDeductModal('${w.id}')">- 출고/이동 차감</button>`;
           }
@@ -857,16 +917,12 @@
           return `
             <div class="work-card ${isExhausted ? 'exhausted' : (w.done ? 'done' : '')}">
               <div class="w-top">
-                <div>
-                  <span class="badge b-factory">${w.factory}</span>
-                  <span class="badge b-proc ${isRivetProc ? 'rivet' : ''}">${w.process} (${w.unitWeight}g)</span>
-                  ${wUnitDateTag}
-                </div>
+                <div>${headerBadgesHtml}</div>
                 <span class="badge b-status ${w.done ? 'done' : ''}">${w.done ? '작업완료' : '작업중'}</span>
               </div>
-              ${isTransferred ? `<div><span class="source-tag">📦 ${w.rivetSource} 리벳 수령 → 후공정 진행</span></div>` : ''}
-              <div class="w-body" style="margin-top:6px;">
-                • 리벳 투입: <b>${w.inputKg.toLocaleString()}kg</b> → 작업수량: <b>${Number(w.qty).toLocaleString()}개</b> (${isRivetProc ? '리벳 이론중량' : '와샤포함 이론중량'} <b>${theoryKg}kg</b>)${rivetFlowInfo}<br>
+              ${routeBannerHtml}
+              <div class="w-body">
+                • 리벳 투입: <b>${w.inputKg.toLocaleString()}kg</b> → 작업수량: <b>${Number(w.qty).toLocaleString()}개</b> (${isRivetOnly ? '리벳 이론중량' : '와샤포함 이론중량'} <b>${theoryKg}kg</b>)<br>
                 ${w.done 
                   ? `• 완료 실중량(${shortDate(w.doneDate)}): <b>${w.actualKg.toLocaleString()}kg</b> (이론대비 <span class="${diff >= 0 ? 'diff-plus' : 'diff-minus'}">${diff >= 0 ? '+' + diff : diff}kg</span>)<br>
                      <span class="remain-pill ${isExhausted ? 'zero' : ''}">남은잔량: ${remainKg} kg (약 ${remainQty.toLocaleString()}개) ${isExhausted ? '[소진완료]' : ''}</span>` 
@@ -1006,78 +1062,13 @@
     } finally { hideLoading(); }
   }
 
-  // [방법 1 핵심] 작업 배분 모달 오픈 및 리벳 출처(화신 단조분 등) 목록 세팅
   function openWorkModal(remKg) {
     const p = allParents.find(item => item.id === selectedParentId);
     if (!p) return;
-    const myWorks = allWorks.filter(w => w.parentId === p.id);
-    const rivetWorks = myWorks.filter(w => w.process === '리벳');
-
     document.getElementById('wTargetInfo').innerHTML = `<b>${p.mat} ${p.head} (${p.spec})</b><br>리벳단중: ${p.unitWeight}g | 미배분 잔량: <b>${remKg} kg</b>`;
     document.getElementById('wInputKg').value = remKg > 0 ? remKg : '';
-
-    // 이미 1차 리벳 단조 배분이 되어있으면 후공정(SP/W)을 기본 선택, 없으면 리벳(1차단조)을 기본 선택
-    const procBtns = document.querySelectorAll('#procPresets .preset-btn');
-    if (rivetWorks.length > 0 && remKg <= 0) {
-      selectProc('SP/W', procBtns[1]);
-    } else {
-      selectProc('리벳', procBtns[0]);
-    }
-
+    selectProc('리벳', document.querySelector('#procPresets .preset-btn'));
     document.getElementById('workModal').classList.add('open');
-  }
-
-  function updateRivetSourceBox() {
-    const proc = document.getElementById('wProc').value.trim();
-    const box = document.getElementById('wSourceBox');
-    const select = document.getElementById('wRivetSourceSelect');
-    const p = allParents.find(item => item.id === selectedParentId);
-    if (!p) return;
-
-    if (proc === '리벳') {
-      box.style.display = 'none';
-      return;
-    }
-
-    box.style.display = 'block';
-    const myWorks = allWorks.filter(w => w.parentId === p.id);
-    const allocatedKg = getDirectAllocatedKg(myWorks);
-    const remKg = Math.max(0, Math.round((p.totalKg - allocatedKg) * 10) / 10);
-
-    // 1차 리벳 단조 작업건 중 이동 가능한 물량 계산
-    const rivetWorks = myWorks.filter(w => w.process === '리벳');
-    let optionsHtml = '';
-
-    rivetWorks.forEach(rw => {
-      const movedKg = getMovedOutKg(rw, myWorks);
-      const baseKg = rw.done ? rw.actualKg : rw.inputKg;
-      const availKg = Math.max(0, Math.round((baseKg - movedKg) * 10) / 10);
-      if (availKg > 0) {
-        optionsHtml += `<option value="${rw.id}" data-factory="${rw.factory}" data-avail="${availKg}">🔄 ${rw.factory} 리벳 단조분 수령 (이동 가능: ${availKg.toLocaleString()}kg)</option>`;
-      }
-    });
-
-    optionsHtml += `<option value="DIRECT" data-factory="신규발주" data-avail="${remKg}">🆕 신규 발주 리벳에서 직접 배분 (잔량: ${remKg.toLocaleString()}kg)</option>`;
-    select.innerHTML = optionsHtml;
-    onRivetSourceChange();
-  }
-
-  function onRivetSourceChange() {
-    const select = document.getElementById('wRivetSourceSelect');
-    const opt = select.options[select.selectedIndex];
-    if (!opt) return;
-    const avail = Number(opt.getAttribute('data-avail')) || 0;
-    const fac = opt.getAttribute('data-factory');
-    const hint = document.getElementById('wSourceHint');
-
-    if (select.value !== 'DIRECT') {
-      hint.innerHTML = `✔ <b>${fac}</b>에서 만든 리벳을 넘겨받아 후공정만 진행합니다. (상단 미배분 리벳잔량은 차감되지 않고, ${fac} 리벳에서 자동 차감됩니다)`;
-      if (avail > 0) document.getElementById('wInputKg').value = avail;
-    } else {
-      hint.innerHTML = `✔ 리벳 단조와 후공정을 해당 공장에서 일괄 진행합니다. (상단 미배분 리벳잔량에서 차감됩니다)`;
-      if (avail > 0) document.getElementById('wInputKg').value = avail;
-    }
-    recalcWorkPreview();
   }
 
   function selectProc(proc, btn) {
@@ -1086,23 +1077,8 @@
     document.getElementById('wProc').value = proc;
     const p = allParents.find(item => item.id === selectedParentId);
     if (!p) return;
-    const parsed = parseSpec(p.spec);
-    let calcW = p.unitWeight;
-    if (parsed && proc !== '리벳' && proc !== '로링') {
-      const wAdds = getWasherAddWeights(p.head, parsed.dKey, parsed.l);
-      if (wAdds.isFullSpec) {
-        if (proc === 'S/W' && wAdds.hasCustomSw) calcW = wAdds.swAdd;
-        else if (proc === 'SP/W' && wAdds.hasCustomSpw) calcW = wAdds.spwAdd;
-      } else {
-        let addW = 0;
-        if (proc === 'S/W') addW = wAdds.swAdd;
-        else if (proc === 'SP/W') addW = wAdds.spwAdd;
-        calcW = Math.round((p.unitWeight + addW) * 10000) / 10000;
-      }
-    }
-    const histMaxW = getMaxWorkUnitWeight(p.head, p.spec, proc);
-    const maxW = Math.max(calcW, histMaxW);
 
+    const maxW = calcProcUnitWeight(p, proc);
     document.getElementById('wUnitW').value = maxW;
 
     const wMaxBox = document.getElementById('wMaxPinnedBox');
@@ -1112,8 +1088,6 @@
     } else {
       wMaxBox.style.display = 'none';
     }
-
-    updateRivetSourceBox();
     recalcWorkPreview();
   }
 
@@ -1145,19 +1119,6 @@
     const inputKg = Number(document.getElementById('wInputKg').value);
     const unitWeight = Number(document.getElementById('wUnitW').value) || p.unitWeight;
     if (!process || !inputKg || inputKg <= 0) { alert('공정과 투입 중량을 입력해 주세요.'); return; }
-
-    let rivetSource = '신규발주';
-    let sourceWorkId = '';
-
-    if (process !== '리벳') {
-      const select = document.getElementById('wRivetSourceSelect');
-      const opt = select.options[select.selectedIndex];
-      if (opt && select.value !== 'DIRECT') {
-        rivetSource = opt.getAttribute('data-factory');
-        sourceWorkId = select.value;
-      }
-    }
-
     const qty = p.unitWeight > 0 ? Math.round((inputKg * 1000) / p.unitWeight) : 0;
     closeModal('workModal');
     showLoading('배분 저장 중...');
@@ -1172,12 +1133,136 @@
           unitWeight,
           inputKg,
           qty,
-          rivetSource,
-          sourceWorkId
+          rivetSource: '신규발주'
         })
       });
       await loadData();
     } finally { hideLoading(); }
+  }
+
+  // [새 기능] 기존 배분 작업의 2차 공정 / 공장 변경 및 분할 이관 모달
+  function openRouteModal(workId) {
+    const w = allWorks.find(item => item.id === workId);
+    const p = allParents.find(item => item.id === w.parentId);
+    if (!w || !p) return;
+
+    // 원래 리벳을 만든 공장 추적 (이미 한 번 이관된 건이면 기존 rivetSource 유지)
+    const rivetMaker = (w.rivetSource && w.rivetSource !== '신규발주') ? w.rivetSource : w.factory;
+
+    document.getElementById('rtWorkId').value = w.id;
+    document.getElementById('rtOrigFactory').value = rivetMaker;
+    document.getElementById('rtMaxKg').value = w.inputKg;
+    document.getElementById('rtMoveKg').value = w.inputKg;
+
+    document.getElementById('rtOriginInfo').innerHTML =
+      `<b>현재 상태:</b> ${rivetMaker}에서 리벳 단조 중 (<b>${w.inputKg.toLocaleString()}kg</b> / 약 ${Number(w.qty).toLocaleString()}개)<br>` +
+      `<span style="font-size:12px; color:#92400e;">※ 2차 작업을 같은 공장에서 계속하거나, 대성·하늘로 넘길 수 있습니다.</span>`;
+
+    // 2차 공장 버튼 세팅 (기본은 현재 작업 공장 선택)
+    document.getElementById('rtNewFactory').value = w.factory;
+    document.querySelectorAll('#rtFactoryPresets .preset-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.trim() === w.factory);
+    });
+
+    // 공정 버튼 세팅 (현재 '리벳' 상태면 기본으로 'SP/W' 제안)
+    const initProc = w.process === '리벳' ? 'SP/W' : w.process;
+    document.getElementById('rtNewProc').value = initProc;
+    document.querySelectorAll('#rtProcPresets .preset-btn').forEach(btn => {
+      const btnText = btn.textContent.trim();
+      const match = (initProc === '리벳' && btnText === '리벳만') || (btnText === initProc);
+      btn.classList.toggle('active', match);
+    });
+
+    document.getElementById('rtNewUnitW').value = calcProcUnitWeight(p, initProc);
+    recalcRoutePreview();
+    document.getElementById('routeModal').classList.add('open');
+  }
+
+  function selectRtFactory(fac, btn) {
+    document.querySelectorAll('#rtFactoryPresets .preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('rtNewFactory').value = fac;
+    recalcRoutePreview();
+  }
+
+  function selectRtProc(proc, btn) {
+    document.querySelectorAll('#rtProcPresets .preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('rtNewProc').value = proc;
+    const p = allParents.find(item => item.id === selectedParentId);
+    if (p) {
+      document.getElementById('rtNewUnitW').value = calcProcUnitWeight(p, proc);
+    }
+    recalcRoutePreview();
+  }
+
+  function recalcRoutePreview() {
+    const rivetMaker = document.getElementById('rtOrigFactory').value;
+    const maxKg = Number(document.getElementById('rtMaxKg').value) || 0;
+    const newFactory = document.getElementById('rtNewFactory').value;
+    const newProc = document.getElementById('rtNewProc').value.trim();
+    const moveKg = Number(document.getElementById('rtMoveKg').value) || 0;
+    const newW = Number(document.getElementById('rtNewUnitW').value) || 0;
+
+    const p = allParents.find(item => item.id === selectedParentId);
+    const qty = (p && p.unitWeight > 0) ? Math.round((moveKg * 1000) / p.unitWeight) : 0;
+    const afterKg = Math.round((qty * newW / 1000) * 10) / 10;
+    const remainAtOrigin = Math.max(0, Math.round((maxKg - moveKg) * 10) / 10);
+
+    let flowDesc = '';
+    if (rivetMaker === newFactory) {
+      flowDesc = `🏭 <b>${rivetMaker}</b>에서 리벳 + <b>${newProc}</b> 일괄 진행 (${moveKg.toLocaleString()}kg)`;
+    } else {
+      flowDesc = `🔄 <b>${rivetMaker}</b> 리벳 단조 ➔ <b>${newFactory}</b>로 이동하여 <b>${newProc}</b> 진행 (${moveKg.toLocaleString()}kg)`;
+    }
+
+    let splitDesc = '';
+    if (remainAtOrigin > 0) {
+      splitDesc = `<br>✂ <b>분할 처리:</b> ${rivetMaker}에 <b>리벳만 ${remainAtOrigin.toLocaleString()}kg</b>이 그대로 남습니다.`;
+    }
+
+    document.getElementById('rtSummaryBox').innerHTML =
+      `${flowDesc}${splitDesc}<br>` +
+      `• 변경 후 예상중량: <b>${afterKg} kg</b> (약 ${qty.toLocaleString()}개)`;
+  }
+
+  async function submitRouteChange() {
+    const workId = document.getElementById('rtWorkId').value;
+    const rivetMaker = document.getElementById('rtOrigFactory').value;
+    const maxKg = Number(document.getElementById('rtMaxKg').value) || 0;
+    const newFactory = document.getElementById('rtNewFactory').value;
+    const newProcess = document.getElementById('rtNewProc').value.trim();
+    const moveKg = Number(document.getElementById('rtMoveKg').value);
+    const newUnitWeight = Number(document.getElementById('rtNewUnitW').value);
+
+    if (!newProcess) { alert('공정을 입력해 주세요.'); return; }
+    if (!moveKg || moveKg <= 0 || moveKg > maxKg) {
+      alert(`변경할 중량은 0보다 크고 기존 중량(${maxKg}kg) 이하여야 합니다.`);
+      return;
+    }
+
+    // 리벳 단조 공장과 2차 공장이 같으면 rivetSource에 공장명 기록, 다르면 원청 리벳 공장명 기록
+    const rivetSource = (newProcess === '리벳' && rivetMaker === newFactory) ? '신규발주' : rivetMaker;
+
+    closeModal('routeModal');
+    showLoading('공정 및 공장 변경 저장 중...');
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'updateWorkRouting',
+          workId,
+          newFactory,
+          newProcess,
+          newUnitWeight,
+          moveKg,
+          rivetSource
+        })
+      });
+      await loadData();
+    } finally {
+      hideLoading();
+    }
   }
 
   function openCompModal(workId) {
