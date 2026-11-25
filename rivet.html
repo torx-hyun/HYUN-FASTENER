@@ -97,6 +97,10 @@
       width: 100%; margin-top: 5px; padding-top: 5px; border-top: 1px dashed #cbd5e1;
       color: #047857; font-size: 13px; font-weight: 700;
     }
+    .stat-working-rem {
+      width: 100%; margin-top: 4px;
+      color: #b45309; font-size: 12.5px; font-weight: 700;
+    }
 
     .detail-header {
       background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
@@ -155,8 +159,9 @@
       border: 1.5px solid var(--border); border-radius: 10px; padding: 13px;
       margin-bottom: 10px; background: #fff;
     }
-    .work-card.done { border-color: #6ee7b7; background: var(--accent-light); }
-    .work-card.exhausted { border-color: #cbd5e1; background: #f8fafc; opacity: 0.78; }
+    .work-card.working-state { border-left: 5px solid #d97706; }
+    .work-card.done { border-color: #6ee7b7; border-left: 5px solid #059669; background: var(--accent-light); }
+    .work-card.exhausted { border-color: #cbd5e1; border-left: 5px solid #64748b; background: #f8fafc; opacity: 0.78; }
 
     .w-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .badge { padding: 3px 9px; border-radius: 6px; font-size: 13px; font-weight: 700; display: inline-block; }
@@ -164,8 +169,8 @@
     .b-factory-sub { background: #475569; color: #fff; }
     .b-proc { background: #dbeafe; color: #1e40af; }
     .b-proc.rivet { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-    .b-status { background: #fef3c7; color: #92400e; }
-    .b-status.done { background: #059669; color: #fff; }
+    .b-status { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .b-status.done { background: #059669; color: #fff; border: none; }
 
     .route-banner {
       display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
@@ -173,12 +178,12 @@
       padding: 4px 8px; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 6px;
     }
 
-    .w-body { font-size: 13px; line-height: 1.6; color: #1e293b; margin-bottom: 8px; }
+    .w-body { font-size: 13px; line-height: 1.65; color: #1e293b; margin-bottom: 8px; }
     .diff-plus { color: #1d4ed8; font-weight: 700; }
     .diff-minus { color: #dc2626; font-weight: 700; }
     .remain-pill {
       display: inline-block; background: #059669; color: #fff;
-      padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: 800; margin-top: 4px;
+      padding: 5px 11px; border-radius: 6px; font-size: 14px; font-weight: 800; margin-top: 4px;
     }
     .remain-pill.zero { background: #64748b; }
 
@@ -186,10 +191,12 @@
     .act-btn {
       padding: 8px 12px; border-radius: 7px; border: none; font-size: 13px; font-weight: 700; cursor: pointer;
     }
-    .btn-complete { background: #d97706; color: #fff; }
+    .btn-complete { background: #059669; color: #fff; }
+    .btn-complete:hover { background: #047857; }
     .btn-route { background: #eff6ff; border: 1.5px solid #3b82f6; color: #1d4ed8; }
     .btn-route:hover { background: #dbeafe; }
-    .btn-deduct { background: #fff; border: 1px solid #64748b; color: #1e293b; }
+    .btn-deduct { background: #fff; border: 1px solid #475569; color: #1e293b; }
+    .btn-deduct:hover { background: #f1f5f9; }
 
     .modal-backdrop {
       display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55);
@@ -251,8 +258,8 @@
     <div class="filter-group">
       <button class="filter-btn active" onclick="setFilter('all', this)">전체 보기</button>
       <button class="filter-btn" onclick="setFilter('rem', this)">미배분 리벳잔량</button>
-      <button class="filter-btn" onclick="setFilter('working', this)">공장 작업중</button>
-      <button class="filter-btn" onclick="setFilter('done', this)">작업완료 재고보유</button>
+      <button class="filter-btn" onclick="setFilter('working', this)">🏭 공장 작업중</button>
+      <button class="filter-btn" onclick="setFilter('done', this)">🏢 창고 입고완료 재고</button>
     </div>
     <button class="btn-add-main" onclick="openParentModal()">+ 리벳 발주 등록</button>
   </div>
@@ -268,7 +275,7 @@
 
     <div class="panel">
       <div class="panel-title">
-        <span>2. 공장별 작업 배분 (화신 · 대성 · 하늘)</span>
+        <span>2. 공장 작업중 · 창고 입고 현황</span>
       </div>
       <div id="detailArea"><div class="empty-msg">왼쪽에서 품목을 선택해 주세요.</div></div>
     </div>
@@ -386,7 +393,7 @@
   </div>
 </div>
 
-<!-- 모달 2-2: 기존 작업의 2차 공정 및 공장 변경/이관 (새로 추가됨) -->
+<!-- 모달 2-2: 기존 작업의 2차 공정 및 공장 변경/이관 -->
 <div class="modal-backdrop" id="routeModal">
   <div class="modal">
     <h2>🔄 2차 작업 공정 · 공장 변경/이관</h2>
@@ -436,37 +443,37 @@
   </div>
 </div>
 
-<!-- 모달 3: 작업 완료 확인 -->
+<!-- 모달 3: 현화스너 창고 입고완료 등록 -->
 <div class="modal-backdrop" id="compModal">
   <div class="modal">
-    <h2>공장 작업 완료 등록</h2>
-    <div id="cInfo" class="calc-box"></div>
+    <h2>📥 현화스너 창고 입고완료 등록</h2>
+    <div id="cInfo" class="calc-box" style="background:#ecfdf5; border-color:#6ee7b7;"></div>
     <input type="hidden" id="cWorkId" />
     <div class="form-group">
-      <label>작업 완료된 실제 중량 (kg) — 이론중량 기본세팅</label>
+      <label>창고 입고 실중량 (kg) — 이론중량 기본세팅 (실측 후 수정 가능)</label>
       <input type="number" step="0.1" id="cActualKg" inputmode="decimal" />
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('compModal')">취소</button>
-      <button class="btn-submit" style="background:#d97706;" onclick="submitComplete()">작업완료 저장</button>
+      <button class="btn-submit" style="background:#059669;" onclick="submitComplete()">현화스너 창고 입고 저장</button>
     </div>
   </div>
 </div>
 
-<!-- 모달 4: 출고/이동 차감 -->
+<!-- 모달 4: 창고 재고 출고/차감 -->
 <div class="modal-backdrop" id="deductModal">
   <div class="modal">
-    <h2>완료 재고 출고/이동 차감</h2>
+    <h2>📤 현화스너 창고 재고 출고 / 차감</h2>
     <div id="deductTargetInfo" class="calc-box" style="background:#ecfdf5; border-color:#6ee7b7;"></div>
     <input type="hidden" id="dWorkId" />
     <div class="form-group">
-      <label>이번에 빼갈 중량 (kg)</label>
+      <label>창고에서 출고/사용할 중량 (kg)</label>
       <input type="number" step="0.1" id="dUseKg" inputmode="decimal" />
     </div>
-    <button type="button" class="preset-btn" style="width:100%; margin-bottom:10px;" onclick="setAllDeduct()">전량 모두 빼기 (0kg 처리)</button>
+    <button type="button" class="preset-btn" style="width:100%; margin-bottom:10px;" onclick="setAllDeduct()">전량 모두 출고 (현재고 0kg 처리)</button>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('deductModal')">취소</button>
-      <button class="btn-submit" onclick="submitDeduct()">차감 저장하기</button>
+      <button class="btn-submit" onclick="submitDeduct()">출고 차감 저장</button>
     </div>
   </div>
 </div>
@@ -784,10 +791,12 @@
       const allocatedKg = myWorks.reduce((sum, w) => sum + Number(w.inputKg || 0), 0);
       const remKg = Math.max(0, Math.round((p.totalKg - allocatedKg) * 10) / 10);
       const remQty = p.unitWeight > 0 ? Math.round((remKg * 1000) / p.unitWeight) : 0;
-      const hasWorking = myWorks.some(w => !w.done);
+      const workingWorks = myWorks.filter(w => !w.done);
+      const workingKgTotal = workingWorks.reduce((sum, w) => sum + Number(w.inputKg || 0), 0);
+      const hasWorking = workingWorks.length > 0;
       const doneStockTotal = myWorks.reduce((sum, w) => w.done ? sum + Math.max(0, w.actualKg - w.usedKg) : sum, 0);
       const hasDoneAny = myWorks.some(w => w.done);
-      return { ...p, allocatedKg, remKg, remQty, hasWorking, doneStockTotal, hasDoneAny };
+      return { ...p, allocatedKg, remKg, remQty, hasWorking, workingKgTotal, doneStockTotal, hasDoneAny };
     });
 
     if (currentFilter === 'rem') filtered = filtered.filter(p => p.remKg > 0);
@@ -821,7 +830,8 @@
           <div class="p-stats">
             <span>발주 ${p.totalKg.toLocaleString()}kg (배분 ${p.allocatedKg.toLocaleString()}kg)</span>
             <span class="stat-rem ${p.remKg <= 0 ? 'zero' : ''}">${p.remKg > 0 ? '미배분 리벳 ' + p.remKg.toLocaleString() + 'kg (약 ' + p.remQty.toLocaleString() + '개)' : '✔ 전량 배분완료'}</span>
-            ${p.hasDoneAny ? `<div class="stat-factory-rem">📦 공장 작업완료 남은잔량: ${Math.round(p.doneStockTotal * 10)/10} kg</div>` : ''}
+            ${p.hasWorking ? `<div class="stat-working-rem">🏭 외주 공장 작업중: ${Math.round(p.workingKgTotal * 10)/10} kg (창고 입고 대기)</div>` : ''}
+            ${p.hasDoneAny ? `<div class="stat-factory-rem">🏢 현화스너 창고 보유재고: ${Math.round(p.doneStockTotal * 10)/10} kg</div>` : ''}
           </div>
         </div>
       `;
@@ -881,7 +891,6 @@
           const diff = w.done ? Math.round((w.actualKg - theoryKg) * 10) / 10 : 0;
           const wUnitDateTag = formatMeasureBadge(w.unitDate);
 
-          // 헷갈리지 않게 공장 흐름 배지 구성
           let headerBadgesHtml = '';
           let routeBannerHtml = '';
 
@@ -893,7 +902,7 @@
               <span class="badge b-proc">${w.process} (${w.unitWeight}g)</span>
               ${wUnitDateTag}
             `;
-            routeBannerHtml = `<div class="route-banner">🔄 <b>${w.rivetSource}</b>에서 리벳 단조 후 ➔ <b>${w.factory}</b>에서 <b>${w.process}</b> 2차 작업</div>`;
+            routeBannerHtml = `<div class="route-banner">🔄 <b>${w.rivetSource}</b> 리벳 단조 후 ➔ <b>${w.factory}</b>에서 <b>${w.process}</b> 2차 작업</div>`;
           } else {
             headerBadgesHtml = `
               <span class="badge b-factory">${w.factory}</span>
@@ -907,26 +916,29 @@
 
           let actionBtns = '';
           if (!w.done) {
-            actionBtns += `<button class="act-btn btn-complete" onclick="openCompModal('${w.id}')">✔ 작업완료 (실중량 입력)</button>`;
+            actionBtns += `<button class="act-btn btn-complete" onclick="openCompModal('${w.id}')">📥 현화스너 창고 입고완료</button>`;
             actionBtns += `<button class="act-btn btn-route" onclick="openRouteModal('${w.id}')">🔄 공정·공장 변경</button>`;
           } else if (remainKg > 0) {
-            actionBtns += `<button class="act-btn btn-deduct" onclick="openDeductModal('${w.id}')">- 출고/이동 차감</button>`;
+            actionBtns += `<button class="act-btn btn-deduct" onclick="openDeductModal('${w.id}')">📤 창고 출고 / 차감</button>`;
           }
           actionBtns += `<button class="btn-edit-unit" onclick="openEditUnitModal('work', '${w.id}')">✎ 단중수정</button>`;
 
+          const cardStateClass = isExhausted ? 'exhausted' : (w.done ? 'done' : 'working-state');
+          const statusBadgeText = w.done ? '🏢 현화스너 창고 입고완료' : '🏭 공장 작업중';
+
           return `
-            <div class="work-card ${isExhausted ? 'exhausted' : (w.done ? 'done' : '')}">
+            <div class="work-card ${cardStateClass}">
               <div class="w-top">
                 <div>${headerBadgesHtml}</div>
-                <span class="badge b-status ${w.done ? 'done' : ''}">${w.done ? '작업완료' : '작업중'}</span>
+                <span class="badge b-status ${w.done ? 'done' : ''}">${statusBadgeText}</span>
               </div>
               ${routeBannerHtml}
               <div class="w-body">
                 • 리벳 투입: <b>${w.inputKg.toLocaleString()}kg</b> → 작업수량: <b>${Number(w.qty).toLocaleString()}개</b> (${isRivetOnly ? '리벳 이론중량' : '와샤포함 이론중량'} <b>${theoryKg}kg</b>)<br>
                 ${w.done 
-                  ? `• 완료 실중량(${shortDate(w.doneDate)}): <b>${w.actualKg.toLocaleString()}kg</b> (이론대비 <span class="${diff >= 0 ? 'diff-plus' : 'diff-minus'}">${diff >= 0 ? '+' + diff : diff}kg</span>)<br>
-                     <span class="remain-pill ${isExhausted ? 'zero' : ''}">남은잔량: ${remainKg} kg (약 ${remainQty.toLocaleString()}개) ${isExhausted ? '[소진완료]' : ''}</span>` 
-                  : '⏳ 공장에서 작업 진행중'
+                  ? `• 창고 입고 실중량(${shortDate(w.doneDate)}): <b>${w.actualKg.toLocaleString()}kg</b> (이론대비 <span class="${diff >= 0 ? 'diff-plus' : 'diff-minus'}">${diff >= 0 ? '+' + diff : diff}kg</span>)<br>
+                     <span class="remain-pill ${isExhausted ? 'zero' : ''}">🏢 현화스너 창고 현재고: ${remainKg} kg (약 ${remainQty.toLocaleString()}개) ${isExhausted ? '[전량 출고완료]' : ''}</span>` 
+                  : `⏳ <b>${w.factory}</b> 공장에서 작업 진행중 (아직 현화스너 창고 입고 전)`
                 }
               </div>
               <div class="w-actions">${actionBtns}</div>
@@ -1140,13 +1152,11 @@
     } finally { hideLoading(); }
   }
 
-  // [새 기능] 기존 배분 작업의 2차 공정 / 공장 변경 및 분할 이관 모달
   function openRouteModal(workId) {
     const w = allWorks.find(item => item.id === workId);
     const p = allParents.find(item => item.id === w.parentId);
     if (!w || !p) return;
 
-    // 원래 리벳을 만든 공장 추적 (이미 한 번 이관된 건이면 기존 rivetSource 유지)
     const rivetMaker = (w.rivetSource && w.rivetSource !== '신규발주') ? w.rivetSource : w.factory;
 
     document.getElementById('rtWorkId').value = w.id;
@@ -1158,13 +1168,11 @@
       `<b>현재 상태:</b> ${rivetMaker}에서 리벳 단조 중 (<b>${w.inputKg.toLocaleString()}kg</b> / 약 ${Number(w.qty).toLocaleString()}개)<br>` +
       `<span style="font-size:12px; color:#92400e;">※ 2차 작업을 같은 공장에서 계속하거나, 대성·하늘로 넘길 수 있습니다.</span>`;
 
-    // 2차 공장 버튼 세팅 (기본은 현재 작업 공장 선택)
     document.getElementById('rtNewFactory').value = w.factory;
     document.querySelectorAll('#rtFactoryPresets .preset-btn').forEach(btn => {
       btn.classList.toggle('active', btn.textContent.trim() === w.factory);
     });
 
-    // 공정 버튼 세팅 (현재 '리벳' 상태면 기본으로 'SP/W' 제안)
     const initProc = w.process === '리벳' ? 'SP/W' : w.process;
     document.getElementById('rtNewProc').value = initProc;
     document.querySelectorAll('#rtProcPresets .preset-btn').forEach(btn => {
@@ -1241,7 +1249,6 @@
       return;
     }
 
-    // 리벳 단조 공장과 2차 공장이 같으면 rivetSource에 공장명 기록, 다르면 원청 리벳 공장명 기록
     const rivetSource = (newProcess === '리벳' && rivetMaker === newFactory) ? '신규발주' : rivetMaker;
 
     closeModal('routeModal');
@@ -1269,16 +1276,16 @@
     const w = allWorks.find(item => item.id === workId);
     const theoryKg = Math.round((w.qty * w.unitWeight / 1000) * 10) / 10;
     document.getElementById('cWorkId').value = workId;
-    document.getElementById('cInfo').innerHTML = `<b>${w.factory} - ${w.process} (${w.unitWeight}g)</b><br>리벳 투입: ${w.inputKg}kg → 이론중량: <b>${theoryKg} kg</b>`;
+    document.getElementById('cInfo').innerHTML = `<b>${w.factory} · ${w.process} (${w.unitWeight}g)</b> 작업분<br>리벳 투입: ${w.inputKg}kg → 이론중량: <b>${theoryKg} kg</b><br><span style="font-size:12px; color:#065f46;">※ 저장 시 현화스너 창고 재고로 입고 처리됩니다.</span>`;
     document.getElementById('cActualKg').value = theoryKg;
     document.getElementById('compModal').classList.add('open');
   }
   async function submitComplete() {
     const workId = document.getElementById('cWorkId').value;
     const actualKg = Number(document.getElementById('cActualKg').value);
-    if (!actualKg || actualKg <= 0) { alert('완료된 실제 중량을 입력해 주세요.'); return; }
+    if (!actualKg || actualKg <= 0) { alert('창고에 입고된 실제 중량을 입력해 주세요.'); return; }
     closeModal('compModal');
-    showLoading('완료 저장 중...');
+    showLoading('현화스너 창고 입고 저장 중...');
     try {
       await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'completeWork', workId, actualKg }) });
       await loadData();
@@ -1290,7 +1297,7 @@
     const remain = Math.max(0, Math.round((w.actualKg - w.usedKg) * 10) / 10);
     currentDeductMax = remain;
     document.getElementById('dWorkId').value = workId;
-    document.getElementById('deductTargetInfo').innerHTML = `<b>${w.factory} · ${w.process}</b><br>현재 남은잔량: <b>${remain} kg</b>`;
+    document.getElementById('deductTargetInfo').innerHTML = `<b>${w.factory} 입고분 · ${w.process}</b><br>현화스너 창고 현재고: <b>${remain} kg</b>`;
     document.getElementById('dUseKg').value = '';
     document.getElementById('deductModal').classList.add('open');
   }
@@ -1298,11 +1305,11 @@
   async function submitDeduct() {
     const workId = document.getElementById('dWorkId').value;
     const addUse = Number(document.getElementById('dUseKg').value);
-    if (!addUse || addUse <= 0) { alert('차감할 중량을 입력해 주세요.'); return; }
+    if (!addUse || addUse <= 0) { alert('출고/차감할 중량을 입력해 주세요.'); return; }
     const target = allWorks.find(item => item.id === workId);
     const nextUsedKg = Math.min(target.actualKg, Math.round((target.usedKg + addUse) * 10) / 10);
     closeModal('deductModal');
-    showLoading('차감 저장 중...');
+    showLoading('창고 출고 차감 저장 중...');
     try {
       await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateUsedKg', workId, usedKg: nextUsedKg }) });
       await loadData();
