@@ -58,7 +58,6 @@
     .main-grid {
       display: grid; grid-template-columns: 1fr 1.35fr; gap: 16px; align-items: start;
     }
-    /* 오른쪽 2번 패널 화면 스크롤 고정 */
     .sticky-panel {
       position: sticky;
       top: 66px;
@@ -94,6 +93,17 @@
       display: inline-block; background: #e2e8f0; color: #1e293b;
       padding: 2px 8px; border-radius: 5px; font-size: 13px; font-weight: 700; margin-left: 5px;
     }
+    .thread-badge {
+      display: inline-block; padding: 2px 7px; border-radius: 5px;
+      font-size: 11.5px; font-weight: 800; margin-left: 4px; vertical-align: middle;
+    }
+    .thread-badge.danseuki {
+      background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe;
+    }
+    .thread-badge.jeonsan {
+      background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;
+    }
+
     .p-sub-unit { font-size: 12px; color: var(--muted); margin-bottom: 6px; line-height: 1.5; }
     .date-tag {
       display: inline-block; background: #e0e7ff; color: #1e3a8a;
@@ -242,6 +252,7 @@
     .preset-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 6px; }
     .preset-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px; }
     .preset-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+    .preset-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 6px; }
     .preset-btn {
       padding: 9px 3px; border: 1.5px solid var(--border); border-radius: 8px;
       background: #f8fafc; font-size: 13px; font-weight: 700; cursor: pointer; color: #1e293b;
@@ -320,14 +331,14 @@
       <input type="date" id="pDate" />
     </div>
     <div class="form-group">
-      <label>재질 선택</label>
+      <label>재질 선택 (SCM만 길이별 단슷기 자동 전환, 스텐·철은 전산)</label>
       <div class="preset-grid-4" id="matPresets">
-        <button type="button" class="preset-btn active" onclick="selectBtn('matPresets', 'pMat', 'SCM', this)">SCM</button>
-        <button type="button" class="preset-btn" onclick="selectBtn('matPresets', 'pMat', '스텐', this)">스텐</button>
-        <button type="button" class="preset-btn" onclick="selectBtn('matPresets', 'pMat', '철', this)">철</button>
-        <button type="button" class="preset-btn" onclick="selectBtn('matPresets', 'pMat', '직접입력', this)">직접입력</button>
+        <button type="button" class="preset-btn active" onclick="selectMat('SCM', this)">SCM</button>
+        <button type="button" class="preset-btn" onclick="selectMat('스텐', this)">스텐</button>
+        <button type="button" class="preset-btn" onclick="selectMat('철', this)">철</button>
+        <button type="button" class="preset-btn" onclick="selectMat('직접입력', this)">직접입력</button>
       </div>
-      <input type="text" id="pMat" value="SCM" />
+      <input type="text" id="pMat" value="SCM" oninput="recalcParentUnit()" />
     </div>
     <div class="form-group">
       <label>머리모양 선택 (단중 공식 자동 전환)</label>
@@ -350,13 +361,14 @@
     <div class="row-2">
       <div class="form-group">
         <label>규격 (호칭*길이, M1.6~M10)</label>
-        <input type="text" id="pSpec" placeholder="예: 1.6*6 또는 3*10" oninput="recalcParentUnit()" />
+        <input type="text" id="pSpec" placeholder="예: 3*25 또는 6*35" oninput="recalcParentUnit()" />
       </div>
       <div class="form-group">
         <label>총 발주 중량 (kg)</label>
         <input type="number" id="pKg" placeholder="예: 1000" inputmode="numeric" oninput="recalcParentUnit()" />
       </div>
     </div>
+    <div id="pThreadTypeBanner" style="margin-bottom:10px; display:none;"></div>
     <div class="row-2">
       <div class="form-group">
         <label>리벳 단중 (g) — 자동/수정</label>
@@ -547,7 +559,7 @@
   <div class="modal">
     <h2>머리모양별 단중(단품 · S/W · SP/W) 설정</h2>
     <div class="calc-box" style="background:#eff6ff; border-color:#93c5fd;">
-      <b>와샤없음(단품)</b>, <b>S/W</b>, <b>SP/W</b> 모두 <b>호칭 × 길이</b> 규격별로 각각 저장할 수 있습니다.<br>
+      <b>와샤없음(단품)</b>은 <b>SCM(단슷기/전산 자동 구분)</b>과 <b>스텐·철(전산)</b>을 분리하여 저장할 수 있습니다.<br>
       저장 시 <b>몇 월 몇 일에 실측했는지</b> 자동으로 함께 기록됩니다.
     </div>
     <div class="form-group">
@@ -588,6 +600,15 @@
       </div>
       <input type="hidden" id="rWasherType" value="SW" />
     </div>
+    <!-- 와샤없음(단품) 선택 시 나타나는 재질(SCM vs 스텐·철) 구분 -->
+    <div class="form-group" id="rMatTypeWrap" style="display:none;">
+      <label>3-1. 단품 재질 구분 (SCM 단슷기 분리 저장용)</label>
+      <div class="preset-grid-2" id="ruleMatPresets">
+        <button type="button" class="preset-btn active" onclick="selectRuleMat('SCM', this)">SCM (길이별 단슷기 적용)</button>
+        <button type="button" class="preset-btn" onclick="selectRuleMat('STS', this)">스텐 · 철 (항상 전산)</button>
+      </div>
+      <input type="hidden" id="rMat" value="SCM" />
+    </div>
     <div class="form-group" id="rLenWrap">
       <label>4. 길이 L (mm) 입력</label>
       <input type="number" step="0.5" id="rLen" value="10" inputmode="decimal" oninput="loadRuleFields()" />
@@ -614,6 +635,18 @@
     '5': 4.35, '6': 5.25, '8': 7.05, '10': 9.2
   };
 
+  // SCM 재질 전용 단슷기(부분나사) 시작 길이 기준 (mm)
+  const SCM_DANSEUKI_MIN_LEN = {
+    '2': 25,
+    '2.5': 25,
+    '3': 25,
+    '4': 30,
+    '5': 30,
+    '6': 35,
+    '8': 40,
+    '10': 45
+  };
+
   const DEFAULT_WASHER = {
     '1.6': { pw: 0.0245, sw: 0.0221 },
     '2':   { pw: 0.0397, sw: 0.0363 },
@@ -635,7 +668,7 @@
   let customWasherRules = {};
   let selectedParentId = null;
   let currentFilter = 'all';
-  let selectedFactoryFilter = null; // null이면 품목별 보기, '화신금속' 등 지정 시 공장별 모아보기
+  let selectedFactoryFilter = null;
   let currentDeductMax = 0;
 
   window.onload = () => {
@@ -679,22 +712,51 @@
     return p ? `${p.dKey}*${p.l}` : String(specStr || '').trim().toUpperCase();
   }
 
-  function getMaxParentUnitWeight(headType, specStr) {
+  function isScmMaterial(matStr) {
+    return String(matStr || '').trim().toUpperCase().includes('SCM');
+  }
+
+  // 재질과 규격으로 단슷기 여부 판별 (오직 SCM만 해당 길이 이상일 때 true, 스텐·철은 항상 false)
+  function isDanseukiSpec(matStr, specStr) {
+    if (!isScmMaterial(matStr)) return false;
+    const parsed = parseSpec(specStr);
+    if (!parsed) return false;
+    const minLen = SCM_DANSEUKI_MIN_LEN[parsed.dKey];
+    if (!minLen) return false;
+    return parsed.l >= minLen;
+  }
+
+  function getThreadTypeBadgeHtml(matStr, specStr) {
+    const parsed = parseSpec(specStr);
+    if (!parsed) return '';
+    if (isDanseukiSpec(matStr, specStr)) {
+      return `<span class="thread-badge danseuki">단슷기</span>`;
+    }
+    return `<span class="thread-badge jeonsan">전산</span>`;
+  }
+
+  function getMaxParentUnitWeight(headType, specStr, matStr) {
     const h = String(headType || '').trim();
     const sKey = normalizeSpecKey(specStr);
     if (!h || !sKey) return 0;
 
+    const targetIsScm = isScmMaterial(matStr);
+    const targetIsDanseuki = isDanseukiSpec(matStr, specStr);
+
     let maxW = 0;
     allParents.forEach(p => {
       if (String(p.head || '').trim() === h && normalizeSpecKey(p.spec) === sKey) {
-        if (Number(p.unitWeight) > maxW) maxW = Number(p.unitWeight);
+        // 단슷기 규격의 경우, 같은 단슷기(SCM)끼리 또는 전산(스텐/철)끼리만 최대치 비교
+        if (isDanseukiSpec(p.mat, p.spec) === targetIsDanseuki) {
+          if (Number(p.unitWeight) > maxW) maxW = Number(p.unitWeight);
+        }
       }
     });
     const parsed = parseSpec(specStr);
     if (parsed) {
-      const customBase = getCustomBaseUnitInfo(h, parsed.dKey, parsed.l);
+      const customBase = getCustomBaseUnitInfo(h, parsed.dKey, parsed.l, matStr);
       if (customBase && customBase.weight > maxW) maxW = customBase.weight;
-      const formulaW = calcFormulaBaseWeight(parsed.dKey, parsed.l, h);
+      const formulaW = calcFormulaBaseWeight(parsed.dKey, parsed.l, h, matStr);
       if (formulaW > maxW) maxW = formulaW;
     }
     return Math.round(maxW * 10000) / 10000;
@@ -715,7 +777,8 @@
     return Math.round(maxW * 10000) / 10000;
   }
 
-  function calcFormulaBaseWeight(dKey, l, headType) {
+  // 전산 vs SCM 단슷기 단중 공식 분리 계산
+  function calcFormulaBaseWeight(dKey, l, headType, matStr) {
     const d = parseFloat(dKey);
     if (isNaN(d)) return 0;
     const eff = PITCH_DIA[String(dKey)] || (d * 0.88);
@@ -731,28 +794,54 @@
     }
 
     const totalLen = l + headAllowance;
+
+    // SCM 재질이면서 해당 호칭의 단슷기 길이 이상인 경우 -> 나사부(유효경) + 단슷기 생크부(호칭경) 분리 계산
+    const minLen = SCM_DANSEUKI_MIN_LEN[String(dKey)];
+    if (isScmMaterial(matStr) && minLen && l >= minLen) {
+      // 나사산 전조 길이(보통 호칭×2 또는 기준길이 - 5mm)는 유효경(eff), 나머지 생크+머리여유는 호칭경(d)
+      const threadLen = Math.min(l, Math.max(d * 2.2, minLen - 5));
+      const shankAndHeadLen = Math.max(0, totalLen - threadLen);
+      const wThread = eff * eff * 0.00617 * threadLen;
+      const wShank = d * d * 0.00617 * shankAndHeadLen;
+      return Math.round((wThread + wShank) * 10000) / 10000;
+    }
+
+    // 스텐, 철 또는 SCM 전산 길이 -> 전체 유효경 기준 계산
     const w = eff * eff * 0.00617 * totalLen;
     return Math.round(w * 10000) / 10000;
   }
 
-  function getCustomBaseUnitInfo(headType, dKey, lVal) {
+  function getCustomBaseUnitInfo(headType, dKey, lVal, matStr) {
     const h = String(headType || '').trim();
-    const baseKey = h + '__BASE_' + String(dKey).trim() + '*' + String(lVal).trim();
-    if (customWasherRules[baseKey] && customWasherRules[baseKey].swAdd > 0) {
+    const specSub = `${String(dKey).trim()}*${String(lVal).trim()}`;
+    const isScm = isScmMaterial(matStr);
+
+    // 1순위: 재질별 전용 단품 저장키 (SCM 전용 / 스텐·철 전용)
+    const matSpecificKey = h + (isScm ? '__BASE_SCM_' : '__BASE_STS_') + specSub;
+    if (customWasherRules[matSpecificKey] && customWasherRules[matSpecificKey].swAdd > 0) {
       return {
-        weight: Number(customWasherRules[baseKey].swAdd),
-        unitDate: customWasherRules[baseKey].unitDate || ''
+        weight: Number(customWasherRules[matSpecificKey].swAdd),
+        unitDate: customWasherRules[matSpecificKey].unitDate || ''
+      };
+    }
+
+    // 2순위: 기존 공통 단품 저장키 호환
+    const legacyKey = h + '__BASE_' + specSub;
+    if (customWasherRules[legacyKey] && customWasherRules[legacyKey].swAdd > 0) {
+      return {
+        weight: Number(customWasherRules[legacyKey].swAdd),
+        unitDate: customWasherRules[legacyKey].unitDate || ''
       };
     }
     return null;
   }
 
-  function calcBaseUnitWeight(specStr, headType) {
+  function calcBaseUnitWeight(specStr, headType, matStr) {
     const parsed = parseSpec(specStr);
     if (!parsed) return 0;
-    const customBase = getCustomBaseUnitInfo(headType, parsed.dKey, parsed.l);
+    const customBase = getCustomBaseUnitInfo(headType, parsed.dKey, parsed.l, matStr);
     if (customBase !== null) return customBase.weight;
-    return calcFormulaBaseWeight(parsed.dKey, parsed.l, headType);
+    return calcFormulaBaseWeight(parsed.dKey, parsed.l, headType, matStr);
   }
 
   function getWasherAddWeights(headType, dKey, lVal) {
@@ -876,9 +965,10 @@
     container.innerHTML = filtered.map(p => {
       const pct = p.totalKg > 0 ? Math.min(100, Math.round((p.allocatedKg / p.totalKg) * 100)) : 0;
       const totalQty = p.unitWeight > 0 ? Math.round((p.totalKg * 1000) / p.unitWeight) : 0;
-      const maxW = getMaxParentUnitWeight(p.head, p.spec);
+      const maxW = getMaxParentUnitWeight(p.head, p.spec, p.mat);
       const maxBadge = maxW > 0 ? ` <span style="color:#dc2626; font-weight:700;">(최대치 ${maxW}g)</span>` : '';
       const unitDateTag = formatMeasureBadge(p.unitDate);
+      const threadTag = getThreadTypeBadgeHtml(p.mat, p.spec);
       const isSelected = !selectedFactoryFilter && p.id === selectedParentId;
 
       return `
@@ -887,6 +977,7 @@
             <div>
               <span class="p-title">${p.mat} ${p.head}</span>
               <span class="p-spec">${p.spec}</span>
+              ${threadTag}
             </div>
             <span style="font-size:12px; color:var(--muted); white-space:nowrap;">${shortDate(p.date)}</span>
           </div>
@@ -912,14 +1003,12 @@
     }
     renderParents();
     renderDetail();
-    // 우측 패널 스크롤을 맨 위로 복귀
     document.getElementById('rightPanel').scrollTop = 0;
     if (window.innerWidth <= 880) {
       document.getElementById('rightPanel').scrollIntoView({ behavior: 'smooth' });
     }
   }
 
-  // 개별 작업 카드 HTML 생성 공통 함수 (품목별 보기 / 공장별 모아보기 공용)
   function buildWorkCardHtml(w, p, showItemTitle) {
     const isRivetOnly = w.process === '리벳';
     const hasDifferentRivetFactory = w.rivetSource && w.rivetSource !== '신규발주' && w.rivetSource !== w.factory;
@@ -930,12 +1019,13 @@
     const diff = w.done ? Math.round((w.actualKg - theoryKg) * 10) / 10 : 0;
     const wUnitDateTag = formatMeasureBadge(w.unitDate);
     const washerAddG = p ? Math.max(0, Math.round((w.unitWeight - p.unitWeight) * 10000) / 10000) : 0;
+    const threadTag = p ? getThreadTypeBadgeHtml(p.mat, p.spec) : '';
 
     let itemTitleBanner = '';
     if (showItemTitle && p) {
       itemTitleBanner = `
         <div class="w-item-header">
-          <span>📌 ${p.mat} ${p.head} <span class="p-spec" style="margin-left:3px;">${p.spec}</span></span>
+          <span>📌 ${p.mat} ${p.head} <span class="p-spec" style="margin-left:3px;">${p.spec}</span> ${threadTag}</span>
           <span style="font-size:12px; color:#64748b;">발주일: ${shortDate(p.date)}</span>
         </div>
       `;
@@ -1005,7 +1095,6 @@
     const area = document.getElementById('detailArea');
     const titleEl = document.getElementById('rightPanelTitle');
 
-    // [모드 A] 공장별 모아보기 탭 선택 시 (화신금속 / 대성테크 / 하늘테크)
     if (selectedFactoryFilter) {
       titleEl.textContent = `2. [${selectedFactoryFilter}] 전체 작업 및 입고 현황`;
       const facWorks = allWorks.filter(w => w.factory === selectedFactoryFilter);
@@ -1042,7 +1131,6 @@
       return;
     }
 
-    // [모드 B] 왼쪽에서 선택한 개별 발주 품목 상세 보기
     titleEl.textContent = '2. 공장 작업중 · 창고 입고 현황';
     const p = allParents.find(item => item.id === selectedParentId);
     if (!p) {
@@ -1055,8 +1143,9 @@
     const totalQty = p.unitWeight > 0 ? Math.round((p.totalKg * 1000) / p.unitWeight) : 0;
     const remQty = p.unitWeight > 0 ? Math.round((remKg * 1000) / p.unitWeight) : 0;
     const pUnitDateTag = formatMeasureBadge(p.unitDate);
+    const threadTag = getThreadTypeBadgeHtml(p.mat, p.spec);
 
-    const maxUnitW = getMaxParentUnitWeight(p.head, p.spec);
+    const maxUnitW = getMaxParentUnitWeight(p.head, p.spec, p.mat);
     const maxPinHtml = maxUnitW > 0
       ? `<span class="max-pin-badge">📌 최대치 고정: <b>${maxUnitW}g</b> <button type="button" class="btn-apply-max" onclick="applyMaxParentUnit('${p.id}', ${maxUnitW})">최대치 적용</button></span>`
       : '';
@@ -1084,7 +1173,7 @@
     area.innerHTML = `
       <div class="detail-header">
         <div class="detail-top-row">
-          <h3>${p.mat} ${p.head} <span class="p-spec">${p.spec}</span></h3>
+          <h3>${p.mat} ${p.head} <span class="p-spec">${p.spec}</span> ${threadTag}</h3>
           <button class="btn-edit-unit" onclick="openEditUnitModal('parent', '${p.id}')">✎ 팝업 수정</button>
         </div>
         <div class="detail-sub">
@@ -1139,6 +1228,19 @@
     else { input.value = val; }
   }
 
+  function selectMat(val, btn) {
+    document.querySelectorAll('#matPresets .preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const input = document.getElementById('pMat');
+    if (val === '직접입력') {
+      input.value = '';
+      input.focus();
+    } else {
+      input.value = val;
+      recalcParentUnit();
+    }
+  }
+
   function selectHead(val, btn) {
     document.querySelectorAll('#headPresets .preset-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -1153,17 +1255,37 @@
   }
 
   function recalcParentUnit() {
+    const mat = document.getElementById('pMat').value;
     const spec = document.getElementById('pSpec').value;
     const head = document.getElementById('pHead').value;
-    const maxW = getMaxParentUnitWeight(head, spec);
-    const baseW = calcBaseUnitWeight(spec, head);
+    const parsed = parseSpec(spec);
+
+    // 단슷기 vs 전산 안내 배너 표시
+    const threadBanner = document.getElementById('pThreadTypeBanner');
+    if (parsed) {
+      const isDan = isDanseukiSpec(mat, spec);
+      const minLen = SCM_DANSEUKI_MIN_LEN[parsed.dKey];
+      threadBanner.style.display = 'block';
+      if (isDan) {
+        threadBanner.innerHTML = `<div style="background:#f3e8ff; border:1px solid #d8b4fe; color:#6b21a8; padding:6px 10px; border-radius:7px; font-size:12px; font-weight:700;">🟣 SCM M${parsed.dKey} (${minLen}mm 이상) → <b>단슷기(부분나사)</b> 단중 자동 적용</div>`;
+      } else {
+        const reason = isScmMaterial(mat) && minLen ? `(M${parsed.dKey}는 ${minLen}mm부터 단슷기)` : `(${mat || '스텐/철'}은 전 규격 전산)`;
+        threadBanner.innerHTML = `<div style="background:#f8fafc; border:1px solid #cbd5e1; color:#475569; padding:6px 10px; border-radius:7px; font-size:12px; font-weight:600;">⚪ <b>전산(전나사)</b> 기준 단중 적용 ${reason}</div>`;
+      }
+    } else {
+      threadBanner.style.display = 'none';
+    }
+
+    const maxW = getMaxParentUnitWeight(head, spec, mat);
+    const baseW = calcBaseUnitWeight(spec, head, mat);
     const applyW = maxW > 0 ? maxW : baseW;
     if (applyW > 0) document.getElementById('pUnitW').value = applyW;
 
     const maxBox = document.getElementById('pMaxPinnedBox');
     if (maxW > 0) {
+      const typeLabel = isDanseukiSpec(mat, spec) ? '단슷기' : '전산';
       maxBox.style.display = 'block';
-      maxBox.innerHTML = `<span class="max-pin-badge">📌 ${head} (${normalizeSpecKey(spec)}) 역대 최대치 고정: <b>${maxW}g</b> <button type="button" class="btn-apply-max" onclick="document.getElementById('pUnitW').value=${maxW}; recalcParentQtyOnly();">최대치 적용</button></span>`;
+      maxBox.innerHTML = `<span class="max-pin-badge">📌 ${head} (${normalizeSpecKey(spec)} · ${typeLabel}) 최대치 고정: <b>${maxW}g</b> <button type="button" class="btn-apply-max" onclick="document.getElementById('pUnitW').value=${maxW}; recalcParentQtyOnly();">최대치 적용</button></span>`;
     } else {
       maxBox.style.display = 'none';
     }
@@ -1184,6 +1306,7 @@
     document.getElementById('pQtyPreview').value = '';
     document.getElementById('pNote').value = '';
     document.getElementById('pMaxPinnedBox').style.display = 'none';
+    document.getElementById('pThreadTypeBanner').style.display = 'none';
     document.getElementById('parentModal').classList.add('open');
   }
 
@@ -1551,7 +1674,7 @@
     if (type === 'parent') {
       const p = allParents.find(item => item.id === targetId);
       if (!p) return;
-      const maxW = getMaxParentUnitWeight(p.head, p.spec);
+      const maxW = getMaxParentUnitWeight(p.head, p.spec, p.mat);
       const dTag = p.unitDate ? ` (${shortDate(p.unitDate)} 실측)` : '';
       document.getElementById('euInfo').innerHTML = `<b>[리벳 단품 단중 수정]</b> ${p.mat} ${p.head} (${p.spec})<br>기존 단중: <b>${p.unitWeight} g</b>${dTag} | 역대 최대치: <b style="color:#dc2626;">${maxW} g</b>`;
       document.getElementById('euNewUnitW').value = p.unitWeight;
@@ -1624,6 +1747,14 @@
     document.querySelectorAll('#ruleWasherTypePresets .preset-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('rWasherType').value = wType;
+    document.getElementById('rMatTypeWrap').style.display = (wType === 'BASE') ? 'block' : 'none';
+    loadRuleFields();
+  }
+
+  function selectRuleMat(matVal, btn) {
+    document.querySelectorAll('#ruleMatPresets .preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('rMat').value = matVal;
     loadRuleFields();
   }
 
@@ -1632,21 +1763,26 @@
     const dia = document.getElementById('rDia').value;
     const len = Number(document.getElementById('rLen').value) || 0;
     const wType = document.getElementById('rWasherType').value;
+    const rMat = document.getElementById('rMat').value;
 
     document.getElementById('rLenWrap').style.display = 'block';
+    document.getElementById('rMatTypeWrap').style.display = (wType === 'BASE') ? 'block' : 'none';
 
-    const customBase = len > 0 ? getCustomBaseUnitInfo(head, dia, len) : null;
-    const defaultBase = len > 0 ? calcFormulaBaseWeight(dia, len, head) : 0;
+    const customBase = len > 0 ? getCustomBaseUnitInfo(head, dia, len, rMat) : null;
+    const defaultBase = len > 0 ? calcFormulaBaseWeight(dia, len, head, rMat) : 0;
     const baseW = customBase !== null ? customBase.weight : defaultBase;
 
     const wAdds = getWasherAddWeights(head, dia, len);
     const defaultSwTotal = wAdds.isFullSpec && wAdds.hasCustomSw ? wAdds.swAdd : Math.round((baseW + wAdds.swAdd) * 10000) / 10000;
     const defaultSpwTotal = wAdds.isFullSpec && wAdds.hasCustomSpw ? wAdds.spwAdd : Math.round((baseW + wAdds.spwAdd) * 10000) / 10000;
 
+    const isDan = isDanseukiSpec(rMat, `${dia}*${len}`);
+    const typeLabel = rMat === 'SCM' ? (isDan ? 'SCM 단슷기' : 'SCM 전산') : '스텐·철 전산';
+
     if (wType === 'BASE') {
-      document.getElementById('rSingleLabel').textContent = `와샤없음 단품 단중 (g) — ${head || '선택품목'} ${dia}*${len || '?'}`;
+      document.getElementById('rSingleLabel').textContent = `와샤없음 단품 단중 (g) — ${head || '선택품목'} ${dia}*${len || '?'} [${typeLabel}]`;
       document.getElementById('rSingleVal').value = baseW;
-      document.getElementById('rSaveBtn').textContent = `단품(${dia}*${len}) 기준 단중 저장`;
+      document.getElementById('rSaveBtn').textContent = `${typeLabel} (${dia}*${len}) 기준 단중 저장`;
     } else if (wType === 'SW') {
       document.getElementById('rSingleLabel').textContent = `S/W 조립 단중 (g) — ${head || '선택품목'} ${dia}*${len || '?'}`;
       document.getElementById('rSingleVal').value = defaultSwTotal;
@@ -1664,10 +1800,11 @@
     const dia = document.getElementById('rDia').value;
     const len = Number(document.getElementById('rLen').value) || 0;
     const wType = document.getElementById('rWasherType').value;
+    const rMat = document.getElementById('rMat').value;
     const inputVal = Number(document.getElementById('rSingleVal').value) || 0;
 
-    const customBase = len > 0 ? getCustomBaseUnitInfo(head, dia, len) : null;
-    const defaultBase = len > 0 ? calcFormulaBaseWeight(dia, len, head) : 0;
+    const customBase = len > 0 ? getCustomBaseUnitInfo(head, dia, len, rMat) : null;
+    const defaultBase = len > 0 ? calcFormulaBaseWeight(dia, len, head, rMat) : 0;
     const baseW = customBase !== null ? customBase.weight : defaultBase;
 
     const wAdds = getWasherAddWeights(head, dia, len);
@@ -1679,11 +1816,13 @@
     const curSpw = wType === 'SPW' ? inputVal : savedSpw;
     const autoPw = Math.round((curSpw - curSw) * 10000) / 10000;
 
+    const isDan = isDanseukiSpec(rMat, `${dia}*${len}`);
+    const typeLabel = rMat === 'SCM' ? (isDan ? 'SCM 단슷기' : 'SCM 전산') : '스텐·철 전산';
     const baseDateTag = customBase && customBase.unitDate ? formatMeasureBadge(customBase.unitDate) : '';
     const washerDateTag = wAdds.unitDate ? formatMeasureBadge(wAdds.unitDate) : '';
 
     document.getElementById('rPreviewText').innerHTML =
-      `• 적용 규격: <b>${head || '(미입력)'} · ${dia}*${len || '?'}</b> | 단품(와샤없음): <b>${curBase}g</b>${baseDateTag}<br>` +
+      `• 적용 규격: <b>${head || '(미입력)'} · ${dia}*${len || '?'} [${typeLabel}]</b> | 단품: <b>${curBase}g</b>${baseDateTag}<br>` +
       `• S/W 단중: <b>${curSw}g</b> | SP/W 단중: <b>${curSpw}g</b>${washerDateTag}<br>` +
       `• 🧮 <b>평와샤(P/W) 자동 역산 단중: <span style="color:#1e40af; font-size:14px;">${autoPw} g</span></b> (SP/W − S/W)`;
   }
@@ -1693,6 +1832,7 @@
     const dia = document.getElementById('rDia').value;
     const len = Number(document.getElementById('rLen').value);
     const wType = document.getElementById('rWasherType').value;
+    const rMat = document.getElementById('rMat').value;
     const inputVal = Number(document.getElementById('rSingleVal').value);
 
     if (!head) { alert('머리모양을 선택하거나 입력해 주세요.'); return; }
@@ -1702,15 +1842,19 @@
     const specKey = `${dia}*${len}`;
 
     if (wType === 'BASE') {
-      showLoading('단품(와샤없음) 기준단중 및 실측일 저장 중...');
+      const saveHeadKey = head + (rMat === 'SCM' ? '__BASE_SCM' : '__BASE_STS');
+      const isDan = isDanseukiSpec(rMat, specKey);
+      const typeLabel = rMat === 'SCM' ? (isDan ? 'SCM 단슷기' : 'SCM 전산') : '스텐·철 전산';
+
+      showLoading(`${typeLabel} 기준단중 및 실측일 저장 중...`);
       try {
         await fetch(API_URL, {
           method: 'POST',
-          body: JSON.stringify({ action: 'saveWasherRule', head: head + '__BASE', dia: specKey, swAdd: inputVal, spwAdd: 0 })
+          body: JSON.stringify({ action: 'saveWasherRule', head: saveHeadKey, dia: specKey, swAdd: inputVal, spwAdd: 0 })
         });
         await loadData();
         loadRuleFields();
-        alert(`${head} (${specKey}) 단품(와샤없음) 기준 단중이 ${inputVal}g으로 저장되었습니다.`);
+        alert(`${head} (${specKey} · ${typeLabel}) 기준 단중이 ${inputVal}g으로 저장되었습니다.`);
       } catch (e) {
         alert('저장 중 오류가 발생했습니다.');
       } finally {
@@ -1719,8 +1863,8 @@
       return;
     }
 
-    const customBase = getCustomBaseUnitInfo(head, dia, len);
-    const defaultBase = calcFormulaBaseWeight(dia, len, head);
+    const customBase = getCustomBaseUnitInfo(head, dia, len, rMat);
+    const defaultBase = calcFormulaBaseWeight(dia, len, head, rMat);
     const baseW = customBase !== null ? customBase.weight : defaultBase;
     const existing = getWasherAddWeights(head, dia, len);
 
